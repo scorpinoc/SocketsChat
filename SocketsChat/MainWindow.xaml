@@ -3,13 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SocketsChat"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Chat"
+        x:Name="Window"
+        SizeToContent="WidthAndHeight"
+        MinHeight="350" MinWidth="525">
     <StackPanel>
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Button></Button>
+        <Label>Server</Label>
+        <TextBox x:Name="s1" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
+        <TextBox x:Name="s2" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
+        <Label>client</Label>
+        <TextBox x:Name="c1" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
+        <TextBox x:Name="c2" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
+        <Label>response</Label>
+        <TextBlock x:Name="r" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Button Command="{Binding ElementName=Window, Path=OpenServerCommand}">open server</Button>
+        <Button Command="{Binding ElementName=Window, Path=SendCommand}">send</Button>
     </StackPanel>
 </Window>
