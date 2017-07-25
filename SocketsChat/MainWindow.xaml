@@ -9,15 +9,13 @@
         SizeToContent="WidthAndHeight"
         MinHeight="350" MinWidth="525">
     <StackPanel>
-        <Label>Server</Label>
-        <TextBox x:Name="s1" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
-        <TextBox x:Name="s2" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
-        <Label>client</Label>
-        <TextBox x:Name="c1" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
-        <TextBox x:Name="c2" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
-        <Label>response</Label>
-        <TextBlock x:Name="r" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Button Command="{Binding ElementName=Window, Path=OpenServerCommand}">open server</Button>
+        <Label>Connect</Label>
+        <TextBox x:Name="connectIP" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
+        <TextBox x:Name="connectPort" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
+        <Label>Chat</Label>
+        <Border BorderThickness="2" BorderBrush="DarkCyan">
+            <TextBlock x:Name="chat" HorizontalAlignment="Left" VerticalAlignment="Top" MaxHeight="200"/>
+        </Border>
         <Button Command="{Binding ElementName=Window, Path=SendCommand}">send</Button>
     </StackPanel>
 </Window>
