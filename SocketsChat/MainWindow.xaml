@@ -24,7 +24,7 @@
         <DockPanel>
             <Button Command="{Binding ElementName=Window, Path=SendCommand}" Width="55"
                     Content="Send" DockPanel.Dock="Right"/>
-            <TextBox x:Name="Message"  />
+            <TextBox x:Name="MessageText"  />
         </DockPanel>
     </StackPanel>
 </Window>
