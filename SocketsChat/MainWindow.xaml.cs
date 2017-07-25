@@ -1,25 +1,20 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
-using SocketsChat.Annotations;
 
 namespace SocketsChat
 {
     /// <summary>
     ///     Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : INotifyPropertyChanged
+    public partial class MainWindow
     {
         #region Properties
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         #region Auto 
 
@@ -49,11 +44,7 @@ namespace SocketsChat
         #region Methods
 
         #region Private
-
-        [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
+        
         private void InvokeInMainThread(Action callback) => Dispatcher.Invoke(callback);
 
         private void OpenServer(EndPoint endPoint)
@@ -65,7 +56,7 @@ namespace SocketsChat
                     socket.Bind(endPoint);
                     socket.Listen(10);
 
-                    InvokeInMainThread(() => { chat.Text += "Server opened\n"; });
+                    InvokeInMainThread(() => ChatBox.AppendText("Server opened\n"));
 
                     while (true)
                         Accept(socket);
@@ -76,22 +67,28 @@ namespace SocketsChat
                 MessageBox.Show(e.Message);
             }
         }
-        
+
         private void Accept(Socket socket)
         {
             using (var accept = socket.Accept())
             {
                 int count;
                 var bytes = new byte[4096];
+
+                var appendMessage =
+                    new Action<byte[]>(
+                        message =>
+                            InvokeInMainThread(
+                                () => ChatBox.AppendText("other: " + Encoding.UTF8.GetString(message) + "\n")));
+
                 while ((count = accept.Receive(bytes)) > 0)
                     if (count == 4096)
-                        InvokeInMainThread(() => { chat.Text += Encoding.UTF8.GetString(bytes); });
+                        appendMessage(bytes);
                     else
                     {
-                        InvokeInMainThread(() => { chat.Text += Encoding.UTF8.GetString(bytes.Take(count).ToArray()); });
+                        appendMessage(bytes.Take(count).ToArray());
                         break;
                     }
-                InvokeInMainThread(() => { chat.Text += "\n"; });
             }
         }
 
@@ -101,14 +98,13 @@ namespace SocketsChat
             {
                 using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
                 {
-                    var ip = string.Empty;
-                    InvokeInMainThread(() => { ip = connectIP.Text; });
-                    var port = string.Empty;
-                    InvokeInMainThread(() => { port = connectPort.Text; });
-
-                    var ipEndPoint = new IPEndPoint(IPAddress.Parse(ip), int.Parse(port));
+                    var ipEndPoint = new IPEndPoint(IPAddress.Parse(ConnectIp.Text), int.Parse(ConnectPort.Text));
                     socket.Connect(ipEndPoint);
-                    socket.Send(Encoding.UTF8.GetBytes("some test text"));
+
+                    var message = string.Empty;
+                    InvokeInMainThread(() => message = Message.Text);
+                    InvokeInMainThread(() => ChatBox.AppendText("I: " + message + "\n"));
+                    socket.Send(Encoding.UTF8.GetBytes(message));
                 }
             }
             catch (Exception e)

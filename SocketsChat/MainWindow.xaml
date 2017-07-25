@@ -9,13 +9,22 @@
         SizeToContent="WidthAndHeight"
         MinHeight="350" MinWidth="525">
     <StackPanel>
-        <Label>Connect</Label>
-        <TextBox x:Name="connectIP" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top"/>
-        <TextBox x:Name="connectPort" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000" VerticalAlignment="Top"/>
+        <StackPanel Orientation="Horizontal">
+            <Label>Connect to: </Label>
+            <TextBox x:Name="ConnectIp" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1"
+                     VerticalAlignment="Top" />
+            <Label>:</Label>
+            <TextBox x:Name="ConnectPort" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000"
+                     VerticalAlignment="Top" /></StackPanel>
         <Label>Chat</Label>
-        <Border BorderThickness="2" BorderBrush="DarkCyan">
-            <TextBlock x:Name="chat" HorizontalAlignment="Left" VerticalAlignment="Top" MaxHeight="200"/>
+        <Border BorderThickness="2" BorderBrush="LightGray">
+            <RichTextBox x:Name="ChatBox" IsReadOnly="True" MaxHeight="300" MaxWidth="600"
+                         VerticalScrollBarVisibility="Auto" IsDocumentEnabled="False"/>
         </Border>
-        <Button Command="{Binding ElementName=Window, Path=SendCommand}">send</Button>
+        <DockPanel>
+            <Button Command="{Binding ElementName=Window, Path=SendCommand}" Width="55"
+                    Content="Send" DockPanel.Dock="Right"/>
+            <TextBox x:Name="Message"  />
+        </DockPanel>
     </StackPanel>
 </Window>
