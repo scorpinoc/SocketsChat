@@ -9,14 +9,13 @@
         SizeToContent="WidthAndHeight"
         MinHeight="350" MinWidth="525">
     <StackPanel>
+        <Label Content="{Binding ElementName=Window, Path=ServerAdress}"
+               ContentStringFormat="{}Server openned on {0}."/>
         <StackPanel Orientation="Horizontal">
-            <Label>Connect to: </Label>
-            <TextBox x:Name="ConnectIp" HorizontalAlignment="Left" TextWrapping="Wrap" Text="127.0.0.1"
-                     VerticalAlignment="Top" />
-            <Label>:</Label>
-            <TextBox x:Name="ConnectPort" HorizontalAlignment="Left" TextWrapping="Wrap" Text="3000"
-                     VerticalAlignment="Top" /></StackPanel>
-        <Label>Chat</Label>
+            <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="Connect to:"/>
+            <Label Content="{Binding ElementName=Window, Path=ConnectEndPoint}"/>
+        </StackPanel>
+        <Label Content="Chat"/>
         <Border BorderThickness="2" BorderBrush="LightGray">
             <RichTextBox x:Name="ChatBox" IsReadOnly="True" MaxHeight="300" MaxWidth="600"
                          VerticalScrollBarVisibility="Auto" IsDocumentEnabled="False"/>

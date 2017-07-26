@@ -1,25 +1,54 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using Newtonsoft.Json;
+using SocketsChat.Annotations;
 
 namespace SocketsChat
 {
     /// <summary>
     ///     Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow
+    public partial class MainWindow : INotifyPropertyChanged
     {
+        #region Fields
+
+        private IPEndPoint _connectEndPoint;
+
+        #endregion
+
         #region Properties
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         #region Auto 
 
+        public string ServerAdress { get; }
+
         public ICommand SendCommand { get; }
+
+        public ICommand ConnectCommand { get; set; }
+
+        #endregion
+
+        #region Delegates
+
+        public IPEndPoint ConnectEndPoint
+        {
+            get { return _connectEndPoint; }
+            set
+            {
+                _connectEndPoint = value;
+                OnPropertyChanged();
+            }
+        }
 
         #endregion
 
@@ -31,11 +60,27 @@ namespace SocketsChat
         {
             var requestWindow = new IPEndPointRequestWindow("Enter your server IP and Port");
             if (requestWindow.ShowDialog() == true)
+            {
                 ThreadPool.QueueUserWorkItem(state => OpenServer(requestWindow.IpEndPoint));
+                ServerAdress = requestWindow.IpEndPoint.ToString();
+            }
             else
                 Close();
 
-            SendCommand = DelegateCommand.CreateCommand(SendMessage);
+            SendCommand = DelegateCommand.CreateCommand(() =>
+            {
+                var message = new Message(0, "me", MessageText.Text);
+                MessageText.Clear();
+                AddMessage(message);
+                SendMessage(message);
+            }, () => ConnectEndPoint != null, this);
+
+            ConnectCommand = DelegateCommand.CreateCommand(() =>
+            {
+                var requestConnectWindow = new IPEndPointRequestWindow("Enter server for chatting");
+                if (requestConnectWindow.ShowDialog() == true)
+                    ConnectEndPoint = requestWindow.IpEndPoint;
+            }, () => ConnectEndPoint == null, this);
 
             InitializeComponent();
         }
@@ -45,6 +90,10 @@ namespace SocketsChat
         #region Methods
 
         #region Private
+
+        [NotifyPropertyChangedInvocator]
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private void InvokeInMainThread(Action callback) => Dispatcher.Invoke(callback);
 
@@ -86,58 +135,46 @@ namespace SocketsChat
                         break;
                     }
 
-                // todo ! refactor
-                switch (JsonConvert.DeserializeObject<JsonType>(messageText).Type)
-                {
-                    case nameof(Message):
-                    {
-                        var message = JsonConvert.DeserializeObject<Message>(messageText);
-                        message.RecieveTime = DateTime.Now;
-                        AddMessage(message);
-                        // todo ! delete and replace
-                        using (var socket1 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
-                        {
-                            var ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), int.Parse("3000"));
-                            socket1.Connect(ipEndPoint);
-
-                            var answer = new Answer(message.Number, DateTime.Now);
-
-                            socket1.Send(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(answer)));
-                        }
-                        break;
-                    }
-                    case nameof(Answer):
-                    {
-                        var answer = JsonConvert.DeserializeObject<Answer>(messageText);
-                        var message = new Message(answer.Number, "server", "message recieved by client")
-                                      {
-                                          RecieveTime = answer.AnswerTime
-                                      };
-                        AddMessage(message);
-                        break;
-                    }
-                    default:
-                        throw new TypeAccessException("Type not implemented");
-                }
+                AnalyzeRecievedMessage(messageText);
             }
         }
 
-        private void SendMessage()
+        private void AnalyzeRecievedMessage(string messageText)
+        {
+            switch (JsonConvert.DeserializeObject<TypeWrapper>(messageText).Type)
+            {
+                case nameof(Message):
+                {
+                    var message = JsonConvert.DeserializeObject<TypeWrapper<Message>>(messageText).Obj;
+                    message.RecieveTime = DateTime.Now;
+                    AddMessage(message);
+                    var answer = new Answer(message.Number, DateTime.Now);
+                    InvokeInMainThread(() => SendMessage(answer));
+                    break;
+                }
+                case nameof(Answer):
+                {
+                    var answer = JsonConvert.DeserializeObject<TypeWrapper<Answer>>(messageText).Obj;
+                    var message = new Message(answer.Number, "server", "message recieved by client")
+                                  {
+                                      RecieveTime = answer.AnswerTime
+                                  };
+                    AddMessage(message);
+                    break;
+                }
+                default:
+                    throw new TypeAccessException("Type not implemented");
+            }
+        }
+
+        private void SendMessage<T>(T message)
         {
             try
             {
                 using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
                 {
-                    var ipEndPoint = new IPEndPoint(IPAddress.Parse(ConnectIp.Text), int.Parse(ConnectPort.Text));
-                    socket.Connect(ipEndPoint);
-
-                    var messageText = string.Empty;
-                    InvokeInMainThread(() => messageText = MessageText.Text);
-                    var message = new Message(0, "me", messageText);
-
-                    AddMessage(message);
-
-                    socket.Send(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
+                    socket.Connect(ConnectEndPoint);
+                    socket.Send(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new TypeWrapper<T>(message))));
                 }
             }
             catch (Exception e)
@@ -148,7 +185,7 @@ namespace SocketsChat
 
         private void AddMessage(Message message)
         {
-            var date = "(" + (message.RecieveTime?.ToLongTimeString() ?? "sending...") + ")";
+            var date = "(" + (message.RecieveTime?.ToLongTimeString() ?? "sending..") + ")";
             InvokeInMainThread(() => ChatBox.AppendText($"{date} {message.NickName}: {message.MessageText}\n"));
         }
 
@@ -156,19 +193,36 @@ namespace SocketsChat
 
         #endregion
 
-        #region Inner Classes
+        #region Inner Types
 
-        private class JsonType
+        private class TypeWrapper
         {
             public string Type { get; }
 
-            public JsonType(string type = null)
+            // ReSharper disable once MemberCanBeProtected.Local
+            public TypeWrapper([NotNull] string type)
             {
-                Type = string.IsNullOrEmpty(type) ? GetType().Name : type;
+                if (string.IsNullOrEmpty(type))
+                    // ReSharper disable once LocalizableElement
+                    throw new ArgumentException("Argument is null or empty", nameof(type));
+                Type = type;
             }
         }
 
-        private class Message : JsonType
+        private class TypeWrapper<T> : TypeWrapper
+        {
+            public T Obj { get; }
+
+            public TypeWrapper([NotNull] T obj, string type = null)
+                : base(string.IsNullOrEmpty(type) ? obj.GetType().Name : type)
+            {
+                if (obj == null)
+                    throw new ArgumentNullException(nameof(obj));
+                Obj = obj;
+            }
+        }
+
+        private class Message
         {
             public uint Number { get; }
             public string NickName { get; }
@@ -183,7 +237,7 @@ namespace SocketsChat
             }
         }
 
-        private class Answer : JsonType
+        private class Answer
         {
             public uint Number { get; }
             public DateTime AnswerTime { get; }
