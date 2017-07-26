@@ -7,23 +7,63 @@
         Title="Chat"
         x:Name="Window"
         SizeToContent="WidthAndHeight"
+        ResizeMode="CanResize"
         MinHeight="350" MinWidth="525">
-    <StackPanel>
-        <Label Content="{Binding ElementName=Window, Path=ServerAdress}"
-               ContentStringFormat="{}Server openned on {0}."/>
-        <StackPanel Orientation="Horizontal">
-            <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="Connect to:"/>
-            <Label Content="{Binding ElementName=Window, Path=ConnectEndPoint}"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0"
+               Content="{Binding ElementName=Window, Path=ServerAdress}"
+               ContentStringFormat="{}Server openned on {0}." />
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="Connect to:" />
+            <Label Content="{Binding ElementName=Window, Path=ConnectEndPoint}" />
         </StackPanel>
-        <Label Content="Chat"/>
-        <Border BorderThickness="2" BorderBrush="LightGray">
-            <RichTextBox x:Name="ChatBox" IsReadOnly="True" MaxHeight="300" MaxWidth="600"
-                         VerticalScrollBarVisibility="Auto" IsDocumentEnabled="False"/>
-        </Border>
-        <DockPanel>
+        <Label Grid.Row="2" Content="Chat" />
+        <ScrollViewer Grid.Row="3">
+            <StackPanel>
+                <ItemsControl BorderThickness="2" BorderBrush="LightGreen"
+                              ItemsSource="{Binding ElementName=Window, Path=Messages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBox IsReadOnly="True" BorderThickness="0">
+                                <TextBox.Text>
+                                    <MultiBinding StringFormat="{}({0:T}) from {1}: {2}">
+                                        <Binding Path="RecieveTime" Mode="OneWay" />
+                                        <Binding Path="NickName" Mode="OneWay" />
+                                        <Binding Path="MessageText" Mode="OneWay" />
+                                    </MultiBinding>
+                                </TextBox.Text>
+                            </TextBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ItemsControl BorderThickness="2" BorderBrush="LightCoral"
+                              ItemsSource="{Binding ElementName=Window, Path=PendingMessages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBox IsReadOnly="True" BorderThickness="0">
+                                <TextBox.Text>
+                                    <MultiBinding StringFormat="{}(sending...) from {0}: {1}">
+                                        <Binding Path="NickName" Mode="OneWay" />
+                                        <Binding Path="MessageText" Mode="OneWay" />
+                                    </MultiBinding>
+                                </TextBox.Text>
+                            </TextBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+        <DockPanel Grid.Row="4">
             <Button Command="{Binding ElementName=Window, Path=SendCommand}" Width="55"
-                    Content="Send" DockPanel.Dock="Right"/>
-            <TextBox x:Name="MessageText"  />
+                    Content="Send" DockPanel.Dock="Right" />
+            <TextBox x:Name="MessageText" />
         </DockPanel>
-    </StackPanel>
+    </Grid>
 </Window>

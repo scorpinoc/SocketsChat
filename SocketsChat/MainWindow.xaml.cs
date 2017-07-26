@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
@@ -10,6 +11,8 @@ using System.Windows;
 using System.Windows.Input;
 using Newtonsoft.Json;
 using SocketsChat.Annotations;
+
+// todo refactoring 
 
 namespace SocketsChat
 {
@@ -34,7 +37,12 @@ namespace SocketsChat
 
         public ICommand SendCommand { get; }
 
-        public ICommand ConnectCommand { get; set; }
+        public ICommand ConnectCommand { get; }
+
+        public ObservableCollection<Message> Messages { get; }
+        public ObservableCollection<Message> PendingMessages { get; }
+
+        private uint MessageCounter { get; set; }
 
         #endregion
 
@@ -69,18 +77,16 @@ namespace SocketsChat
 
             SendCommand = DelegateCommand.CreateCommand(() =>
             {
-                var message = new Message(0, "me", MessageText.Text);
+                var message = new Message(MessageCounter++, "me", MessageText.Text);
                 MessageText.Clear();
-                AddMessage(message);
+                PendingMessages.Add(message);
                 SendMessage(message);
             }, () => ConnectEndPoint != null, this);
 
-            ConnectCommand = DelegateCommand.CreateCommand(() =>
-            {
-                var requestConnectWindow = new IPEndPointRequestWindow("Enter server for chatting");
-                if (requestConnectWindow.ShowDialog() == true)
-                    ConnectEndPoint = requestWindow.IpEndPoint;
-            }, () => ConnectEndPoint == null, this);
+            ConnectCommand = DelegateCommand.CreateCommand(TryConnect, () => ConnectEndPoint == null, this);
+
+            Messages = new ObservableCollection<Message>();
+            PendingMessages = new ObservableCollection<Message>();
 
             InitializeComponent();
         }
@@ -90,6 +96,26 @@ namespace SocketsChat
         #region Methods
 
         #region Private
+
+        private void TryConnect()
+        {
+            var requestConnectWindow = new IPEndPointRequestWindow("Enter server for chatting");
+            if (requestConnectWindow.ShowDialog() == false) return;
+            try
+            {
+                using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
+                    socket.Connect(requestConnectWindow.IpEndPoint);
+                ConnectEndPoint = requestConnectWindow.IpEndPoint;
+                Messages.Add(new Message(MessageCounter++, "Server", $"Succesfully connected to {ConnectEndPoint}")
+                {
+                    RecieveTime = DateTime.Now
+                });
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
 
         [NotifyPropertyChangedInvocator]
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -106,10 +132,15 @@ namespace SocketsChat
                     socket.Bind(endPoint);
                     socket.Listen(10);
 
-                    InvokeInMainThread(() => ChatBox.AppendText("Server opened\n"));
+                    InvokeInMainThread(
+                        () =>
+                            Messages.Add(new Message(MessageCounter++, "Server", $"Server opened on {endPoint}")
+                            {
+                                RecieveTime = DateTime.Now
+                            }));
 
                     while (true)
-                        Accept(socket);
+                        AcceptMessageFrom(socket);
                 }
             }
             catch (Exception e)
@@ -118,7 +149,7 @@ namespace SocketsChat
             }
         }
 
-        private void Accept(Socket socket)
+        private void AcceptMessageFrom(Socket socket)
         {
             using (var accept = socket.Accept())
             {
@@ -135,7 +166,8 @@ namespace SocketsChat
                         break;
                     }
 
-                AnalyzeRecievedMessage(messageText);
+                if (!string.IsNullOrEmpty(messageText))
+                    AnalyzeRecievedMessage(messageText);
             }
         }
 
@@ -147,19 +179,21 @@ namespace SocketsChat
                 {
                     var message = JsonConvert.DeserializeObject<TypeWrapper<Message>>(messageText).Obj;
                     message.RecieveTime = DateTime.Now;
-                    AddMessage(message);
+                    InvokeInMainThread(() => Messages.Add(message));
                     var answer = new Answer(message.Number, DateTime.Now);
-                    InvokeInMainThread(() => SendMessage(answer));
+                    SendMessage(answer);
                     break;
                 }
                 case nameof(Answer):
                 {
                     var answer = JsonConvert.DeserializeObject<TypeWrapper<Answer>>(messageText).Obj;
-                    var message = new Message(answer.Number, "server", "message recieved by client")
-                                  {
-                                      RecieveTime = answer.AnswerTime
-                                  };
-                    AddMessage(message);
+                    InvokeInMainThread(() =>
+                    {
+                        var message = PendingMessages.First(msg => msg.Number == answer.Number);
+                        PendingMessages.Remove(message);
+                        message.RecieveTime = answer.AnswerTime;
+                        Messages.Add(message);
+                    });
                     break;
                 }
                 default:
@@ -181,12 +215,6 @@ namespace SocketsChat
             {
                 MessageBox.Show(e.Message);
             }
-        }
-
-        private void AddMessage(Message message)
-        {
-            var date = "(" + (message.RecieveTime?.ToLongTimeString() ?? "sending..") + ")";
-            InvokeInMainThread(() => ChatBox.AppendText($"{date} {message.NickName}: {message.MessageText}\n"));
         }
 
         #endregion
@@ -214,7 +242,9 @@ namespace SocketsChat
             public T Obj { get; }
 
             public TypeWrapper([NotNull] T obj, string type = null)
-                : base(string.IsNullOrEmpty(type) ? obj.GetType().Name : type)
+                : base(string.IsNullOrEmpty(type)
+                    ? obj.GetType().Name
+                    : type)
             {
                 if (obj == null)
                     throw new ArgumentNullException(nameof(obj));
@@ -222,7 +252,7 @@ namespace SocketsChat
             }
         }
 
-        private class Message
+        public class Message
         {
             public uint Number { get; }
             public string NickName { get; }
