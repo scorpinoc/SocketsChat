@@ -12,7 +12,7 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 using SocketsChat.Annotations;
 
-// todo refactoring 
+// todo ! refactoring 
 
 namespace SocketsChat
 {
@@ -21,9 +21,32 @@ namespace SocketsChat
     /// </summary>
     public partial class MainWindow : INotifyPropertyChanged
     {
+        #region Static
+
+        private static bool TryGetValueFrom<T>([NotNull] Window window, [NotNull] string propertyName, out T value)
+            where T : class
+        {
+            if (window == null)
+                throw new ArgumentNullException(nameof(window));
+            if (string.IsNullOrEmpty(propertyName))
+                // ReSharper disable once LocalizableElement
+                throw new ArgumentException("Argument is null or empty", nameof(propertyName));
+
+            if (window.ShowDialog() == false)
+            {
+                value = null;
+                return false;
+            }
+            value = window.GetType().GetProperty(propertyName).GetValue(window) as T;
+            return true;
+        }
+
+        #endregion
+
         #region Fields
 
         private IPEndPoint _connectEndPoint;
+        private string _nickname;
 
         #endregion
 
@@ -33,7 +56,7 @@ namespace SocketsChat
 
         #region Auto 
 
-        public string ServerAdress { get; }
+        public string ServerAdress { get; private set; }
 
         public ICommand SendCommand { get; }
 
@@ -41,6 +64,8 @@ namespace SocketsChat
 
         public ObservableCollection<Message> Messages { get; }
         public ObservableCollection<Message> PendingMessages { get; }
+
+        public ICommand ChooseNicknameCommand { get; }
 
         private uint MessageCounter { get; set; }
 
@@ -53,7 +78,19 @@ namespace SocketsChat
             get { return _connectEndPoint; }
             set
             {
+                if (Equals(value, _connectEndPoint)) return;
                 _connectEndPoint = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Nickname
+        {
+            get { return _nickname; }
+            private set
+            {
+                if (value == _nickname) return;
+                _nickname = value;
                 OnPropertyChanged();
             }
         }
@@ -66,27 +103,19 @@ namespace SocketsChat
 
         public MainWindow()
         {
-            var requestWindow = new IPEndPointRequestWindow("Enter your server IP and Port");
-            if (requestWindow.ShowDialog() == true)
-            {
-                ThreadPool.QueueUserWorkItem(state => OpenServer(requestWindow.IpEndPoint));
-                ServerAdress = requestWindow.IpEndPoint.ToString();
-            }
-            else
-                Close();
+            TryOpenServer();
 
-            SendCommand = DelegateCommand.CreateCommand(() =>
-            {
-                var message = new Message(MessageCounter++, "me", MessageText.Text);
-                MessageText.Clear();
-                PendingMessages.Add(message);
-                SendMessage(message);
-            }, () => ConnectEndPoint != null, this);
+            SendCommand = DelegateCommand.CreateCommand(SendMessage,
+                () => ConnectEndPoint != null && !string.IsNullOrWhiteSpace(Nickname), this);
 
             ConnectCommand = DelegateCommand.CreateCommand(TryConnect, () => ConnectEndPoint == null, this);
 
             Messages = new ObservableCollection<Message>();
             PendingMessages = new ObservableCollection<Message>();
+
+            Nickname = string.Empty;
+            ChooseNicknameCommand = DelegateCommand.CreateCommand(TryChooseNickname,
+                () => string.IsNullOrWhiteSpace(Nickname), this);
 
             InitializeComponent();
         }
@@ -97,23 +126,73 @@ namespace SocketsChat
 
         #region Private
 
-        private void TryConnect()
+        private void TryChooseNickname()
         {
-            var requestConnectWindow = new IPEndPointRequestWindow("Enter server for chatting");
-            if (requestConnectWindow.ShowDialog() == false) return;
             try
             {
-                using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
-                    socket.Connect(requestConnectWindow.IpEndPoint);
-                ConnectEndPoint = requestConnectWindow.IpEndPoint;
-                Messages.Add(new Message(MessageCounter++, "Server", $"Succesfully connected to {ConnectEndPoint}")
-                {
-                    RecieveTime = DateTime.Now
-                });
+                string nickname;
+                var valueGet = TryGetValueFrom(new NicknameChooseWindow("Guest #" + new Random().Next(1, 1000)),
+                    nameof(NicknameChooseWindow.Nickname), out nickname);
+                if (!valueGet) return;
+                Nickname = nickname;
+                ServerMessage($"Nickname set as {Nickname}");
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBoxWith(e.Message);
+            }
+        }
+
+        private void ServerMessage(string messageText)
+            => Messages.Add(new Message(MessageCounter++, "Server", messageText)
+            {
+                RecieveTime = DateTime.Now
+            });
+
+        private void SendMessage()
+        {
+            var message = new Message(MessageCounter++, Nickname, MessageText.Text);
+            MessageText.Clear();
+            PendingMessages.Add(message);
+            Send(message);
+        }
+
+        private void TryOpenServer()
+        {
+            try
+            {
+                IPEndPoint serverAdress;
+                var getServerAdress = TryGetValueFrom(new IPEndPointRequestWindow("Enter your server IP and Port"),
+                    nameof(IPEndPointRequestWindow.IpEndPoint), out serverAdress);
+
+                if (!getServerAdress) Close();
+                ThreadPool.QueueUserWorkItem(state => OpenServer(serverAdress));
+                ServerAdress = serverAdress.ToString();
+            }
+            catch (Exception e)
+            {
+                MessageBoxWith(e.Message);
+            }
+        }
+
+        private void TryConnect()
+        {
+            try
+            {
+                IPEndPoint connectEndPoint;
+                var valueGet = TryGetValueFrom(new IPEndPointRequestWindow("Enter server for chatting"),
+                    nameof(IPEndPointRequestWindow.IpEndPoint), out connectEndPoint);
+
+                if (!valueGet) return;
+
+                using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
+                    socket.Connect(connectEndPoint);
+                ConnectEndPoint = connectEndPoint;
+                ServerMessage($"Succesfully connected to {ConnectEndPoint}");
+            }
+            catch (Exception e)
+            {
+                MessageBoxWith(e.Message);
             }
         }
 
@@ -132,22 +211,26 @@ namespace SocketsChat
                     socket.Bind(endPoint);
                     socket.Listen(10);
 
-                    InvokeInMainThread(
-                        () =>
-                            Messages.Add(new Message(MessageCounter++, "Server", $"Server opened on {endPoint}")
-                            {
-                                RecieveTime = DateTime.Now
-                            }));
+                    InvokeInMainThread(() => ServerMessage($"Server opened on {endPoint}"));
 
                     while (true)
                         AcceptMessageFrom(socket);
                 }
             }
+            catch (SocketException e)
+            {
+                MessageBoxWith(e.Message);
+                if (e.SocketErrorCode == SocketError.AddressAlreadyInUse)
+                    InvokeInMainThread(Close);
+            }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBoxWith(e.Message);
             }
         }
+
+        private void MessageBoxWith(string text, string caption = "Error")
+            => InvokeInMainThread(() => MessageBox.Show(this, "Error occupied:\n" + text, caption));
 
         private void AcceptMessageFrom(Socket socket)
         {
@@ -181,7 +264,7 @@ namespace SocketsChat
                     message.RecieveTime = DateTime.Now;
                     InvokeInMainThread(() => Messages.Add(message));
                     var answer = new Answer(message.Number, DateTime.Now);
-                    SendMessage(answer);
+                    Send(answer);
                     break;
                 }
                 case nameof(Answer):
@@ -201,7 +284,7 @@ namespace SocketsChat
             }
         }
 
-        private void SendMessage<T>(T message)
+        private void Send<T>(T message)
         {
             try
             {
@@ -213,7 +296,7 @@ namespace SocketsChat
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBoxWith(e.Message);
             }
         }
 

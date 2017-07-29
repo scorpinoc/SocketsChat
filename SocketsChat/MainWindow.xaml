@@ -23,6 +23,9 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal">
             <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="Connect to:" />
             <Label Content="{Binding ElementName=Window, Path=ConnectEndPoint}" />
+            <Button Command="{Binding ElementName=Window, Path=ChooseNicknameCommand}"
+                    Content="Choose nickname: "/>
+            <Label Content="{Binding ElementName=Window, Path=Nickname}"/>
         </StackPanel>
         <Label Grid.Row="2" Content="Chat" />
         <ScrollViewer Grid.Row="3">
@@ -33,7 +36,7 @@
                         <DataTemplate>
                             <TextBox IsReadOnly="True" BorderThickness="0">
                                 <TextBox.Text>
-                                    <MultiBinding StringFormat="{}({0:T}) from {1}: {2}">
+                                    <MultiBinding StringFormat="{}({0:HH:mm:ss}) from {1}: {2}">
                                         <Binding Path="RecieveTime" Mode="OneWay" />
                                         <Binding Path="NickName" Mode="OneWay" />
                                         <Binding Path="MessageText" Mode="OneWay" />
@@ -60,10 +63,15 @@
                 </ItemsControl>
             </StackPanel>
         </ScrollViewer>
-        <DockPanel Grid.Row="4">
-            <Button Command="{Binding ElementName=Window, Path=SendCommand}" Width="55"
-                    Content="Send" DockPanel.Dock="Right" />
-            <TextBox x:Name="MessageText" />
-        </DockPanel>
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="MessageText" AcceptsReturn="True" AcceptsTab="True"/>
+            <Button Grid.Column="1"
+                    Command="{Binding ElementName=Window, Path=SendCommand}"
+                    Width="55" Content="Send" />
+        </Grid>
     </Grid>
 </Window>
