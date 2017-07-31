@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using SocketsChat.Annotations;
-using SocketsChat.Model;
+using SocketsChat.Models;
 
 // todo refactoring 
 
@@ -31,7 +31,7 @@ namespace SocketsChat
                 value = default(T);
                 return false;
             }
-            value = (T) window.GetType().GetProperty(propertyName).GetValue(window);
+            value = (T)window.GetType().GetProperty(propertyName).GetValue(window);
             return true;
         }
 
@@ -39,45 +39,42 @@ namespace SocketsChat
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        private ViewModel ViewModel { get; }
+
         public ICommand SendCommand { get; }
-
         public ICommand ConnectCommand { get; }
-
         public ICommand ChooseNicknameCommand { get; }
-
-        private ChatServer ChatServer { get; }
 
         public string ServerAdress { get; private set; }
 
-        public string ConnectEndPoint => ChatServer.ConnectAdress?.ToString();
+        public string ConnectEndPoint => ViewModel.ConnectAdress?.ToString();
 
-        public string Nickname => ChatServer.Nickname;
+        public string Nickname => ViewModel.Nickname;
 
-        public IEnumerable<IMessage> Messages => ChatServer.Messages;
-        public IEnumerable<IMessage> PendingMessages => ChatServer.PendingMessages;
+        public IEnumerable<IMessage> Messages => ViewModel.Messages;
+        public IEnumerable<IMessage> PendingMessages => ViewModel.PendingMessages;
 
-        public bool CanSendMessage => ChatServer.CanSendMessage;
+        public bool CanSendMessage => ViewModel.CanSendMessage;
 
         #endregion
 
         public MainWindow()
         {
-            ChatServer = new ChatServer();
+            ViewModel = new ViewModel();
 
             BindingOperations.EnableCollectionSynchronization(Messages, new object());
             BindingOperations.EnableCollectionSynchronization(PendingMessages, new object());
 
-            // todo set to delegate only exist in MainWindow properties
-            ChatServer.PropertyChanged += (sender, args) => PropertyChanged?.Invoke(this, args);
+            ViewModel.PropertyChanged += (sender, args) => PropertyChanged?.Invoke(this, args);
 
             TryOpenServer();
 
-            SendCommand = DelegateCommand.CreateCommand(TrySendMessage, () => ChatServer.CanSendMessage, ChatServer);
+            SendCommand = DelegateCommand.CreateCommand(TrySendMessage, () => ViewModel.SendMessageCommand.CanExecute(null), ViewModel);
 
-            ConnectCommand = DelegateCommand.CreateCommand(TryConnect, () => ChatServer.ConnectAdress == null, ChatServer);
+            ConnectCommand = DelegateCommand.CreateCommand(TryConnect, () => ViewModel.ConnectCommand.CanExecute(null), ViewModel);
 
             ChooseNicknameCommand = DelegateCommand.CreateCommand(TrySetNickname,
-                () => string.IsNullOrWhiteSpace(ChatServer.Nickname), ChatServer);
+                () => ViewModel.SetNicknameCommand.CanExecute(null), ViewModel);
 
             InitializeComponent();
         }
@@ -92,12 +89,13 @@ namespace SocketsChat
                 var getServerAdress = TryGetValueFrom(new IPEndPointRequestWindow("Enter your server IP and Port"),
                     nameof(IPEndPointRequestWindow.IpEndPoint), out serverAdress);
 
-                if (!getServerAdress)
+                if (!getServerAdress || !ViewModel.OpenServerCommand.CanExecute(serverAdress))
                     Close();
 
                 ServerAdress = serverAdress.ToString();
                 ThreadPool.QueueUserWorkItem(
-                    state => Try(() => ChatServer.OpenServer(serverAdress), () => InvokeInMainThread(Close)));
+                    state =>
+                        Try(() => ViewModel.OpenServerCommand.Execute(serverAdress), () => InvokeInMainThread(Close)));
             });
         }
 
@@ -110,7 +108,7 @@ namespace SocketsChat
                     nameof(IPEndPointRequestWindow.IpEndPoint), out connectEndPoint);
 
                 if (valueGet)
-                    ChatServer.Connect(connectEndPoint);
+                    ViewModel.ConnectCommand.Execute(connectEndPoint);
             });
         }
 
@@ -121,7 +119,8 @@ namespace SocketsChat
                 string nickname;
                 var valueGet = TryGetValueFrom(new NicknameChooseWindow("Guest #" + new Random().Next(1, 1000)),
                     nameof(NicknameChooseWindow.Nickname), out nickname);
-                if (valueGet) ChatServer.SetNickname(nickname);
+                if (valueGet)
+                    ViewModel.SetNicknameCommand.Execute(nickname);
             });
         }
 
@@ -131,7 +130,7 @@ namespace SocketsChat
             {
                 var message = MessageText.Text;
                 MessageText.Clear();
-                ChatServer.SendMessage(message);
+                ViewModel.SendMessageCommand.Execute(message);
             });
         }
 

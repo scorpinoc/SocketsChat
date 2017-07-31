@@ -13,16 +13,28 @@ using Newtonsoft.Json;
 using SocketsChat.Annotations;
 
 // todo ! refactor
-namespace SocketsChat.Model
+namespace SocketsChat.Models
 {
-    public class ChatServer : INotifyPropertyChanged
+    public sealed class ChatServer : INotifyPropertyChanged
     {
         private EndPoint _connectAdress;
         private string _nickname;
+        private bool _serverIsOn;
 
         #region Properties
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public bool ServerIsOn
+        {
+            get { return _serverIsOn; }
+            private set
+            {
+                if (value == _serverIsOn) return;
+                _serverIsOn = value;
+                OnPropertyChanged();
+            }
+        }
 
         private ManualResetEvent ResetEvent { get; }
         private uint MessageCounter { get; set; }
@@ -72,6 +84,8 @@ namespace SocketsChat.Model
 
         public void OpenServer([NotNull] EndPoint serverAdress)
         {
+            if (ServerIsOn)
+                throw new InvalidOperationException("Server can be initialized only once.");
             if (serverAdress == null) throw new ArgumentNullException(nameof(serverAdress));
 
             using (var server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
@@ -79,6 +93,7 @@ namespace SocketsChat.Model
                 server.Bind(serverAdress);
                 server.Listen(10);
 
+                ServerIsOn = true;
                 ServerMessage($"Server opened on {serverAdress}");
 
                 while (true)
@@ -164,7 +179,7 @@ namespace SocketsChat.Model
             });
         }
 
-        public void Connect([NotNull] IPEndPoint connectEndPoint)
+        public void Connect([NotNull] EndPoint connectEndPoint)
         {
             if (connectEndPoint == null) throw new ArgumentNullException(nameof(connectEndPoint));
 
@@ -192,7 +207,7 @@ namespace SocketsChat.Model
 
         public void SendMessage(string text)
         {
-            var message = new Message(MessageCounter++, Nickname, text);
+            var message = new Message(MessageCounter++, Nickname, text.Trim());
             PendingMessages.Add(message);
             Send(message);
         }

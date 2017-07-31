@@ -1,6 +1,6 @@
 using System;
 
-namespace SocketsChat.Model
+namespace SocketsChat.Models
 {
     public interface IMessage
     {
