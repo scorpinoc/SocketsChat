@@ -147,7 +147,8 @@ namespace SocketsChat.Models
                 case nameof(Answer):
                     {
                         var answer = JsonConvert.DeserializeObject<TypeWrapper<Answer>>(messageText).Obj;
-                        var message = PendingMessages.First(msg => msg.Number == answer.Number);
+                        var message = PendingMessages.FirstOrDefault(msg => msg.Number == answer.Number);
+                        if (message == null) return;
                         PendingMessages.Remove(message);
                         message.RecieveTime = answer.AnswerTime;
                         Messages.Add(message);
@@ -162,6 +163,7 @@ namespace SocketsChat.Models
         {
             Debug.Assert(message != null);
 
+            if (ConnectAdress == null) return;
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
             {
                 socket.Connect(ConnectAdress);
