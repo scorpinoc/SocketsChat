@@ -14,37 +14,37 @@ namespace SocketsChat
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private ChatServer ChatServer { get; }
+        private Server Server { get; }
         public ICommand OpenServerCommand { get; }
         public ICommand ConnectCommand { get; }
         public ICommand SetNicknameCommand { get; }
         public ICommand SendMessageCommand { get; }
 
-        public EndPoint ConnectAdress => ChatServer.ConnectAdress;
-        public string Nickname => ChatServer.Nickname;
+        public EndPoint ConnectAdress => Server.ConnectAdress;
+        public string Nickname => Server.Nickname;
 
-        public IEnumerable<IMessage> Messages => ChatServer.Messages;
-        public IEnumerable<IMessage> PendingMessages => ChatServer.PendingMessages;
+        public IEnumerable<Message> Messages => Server.Messages;
+        public IEnumerable<Message> PendingMessages => Server.PendingMessages;
 
-        public bool CanSendMessage => ChatServer.CanSendMessage;
+        public bool CanSendMessage => Server.CanSendMessage;
 
         #endregion
 
         public ViewModel()
         {
-            ChatServer = new ChatServer();
+            Server = new Server();
 
             // ReSharper disable once RedundantArgumentDefaultValue
-            ChatServer.PropertyChanged += (sender, args) => OnPropertyChanged(null);
+            Server.PropertyChanged += (sender, args) => OnPropertyChanged(null);
 
-            OpenServerCommand = DelegateCommand.CreateCommand<EndPoint>(ChatServer.OpenServer,
-                point => !ChatServer.ServerIsOn, ChatServer);
-            ConnectCommand = DelegateCommand.CreateCommand<EndPoint>(ChatServer.Connect,
-                point => ChatServer.ConnectAdress == null, ChatServer);
-            SetNicknameCommand = DelegateCommand.CreateCommand<string>(ChatServer.SetNickname,
-                s => string.IsNullOrWhiteSpace(ChatServer.Nickname), ChatServer);
-            SendMessageCommand = DelegateCommand.CreateCommand<string>(ChatServer.SendMessage,
-                s => ChatServer.CanSendMessage, ChatServer);
+            OpenServerCommand = DelegateCommand.CreateCommand<EndPoint>(Server.OpenServer,
+                point => !Server.ServerIsOn, Server);
+            ConnectCommand = DelegateCommand.CreateCommand<EndPoint>(Server.Connect,
+                point => Server.ConnectAdress == null, Server);
+            SetNicknameCommand = DelegateCommand.CreateCommand<string>(Server.SetNickname,
+                s => string.IsNullOrWhiteSpace(Server.Nickname), Server);
+            SendMessageCommand = DelegateCommand.CreateCommand<string>(Server.SendMessage,
+                s => Server.CanSendMessage, Server);
         }
 
         #region Methods

@@ -51,8 +51,8 @@ namespace SocketsChat
 
         public string Nickname => ViewModel.Nickname;
 
-        public IEnumerable<IMessage> Messages => ViewModel.Messages;
-        public IEnumerable<IMessage> PendingMessages => ViewModel.PendingMessages;
+        public IEnumerable<Message> Messages => ViewModel.Messages;
+        public IEnumerable<Message> PendingMessages => ViewModel.PendingMessages;
 
         public bool CanSendMessage => ViewModel.CanSendMessage;
 

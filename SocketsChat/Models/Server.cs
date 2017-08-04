@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -15,10 +14,10 @@ using SocketsChat.Annotations;
 // todo ! refactor
 namespace SocketsChat.Models
 {
-    public sealed class ChatServer : INotifyPropertyChanged
+    public sealed class Server : INotifyPropertyChanged
     {
-        private EndPoint _connectAdress;
-        private string _nickname;
+        private Client Client { get;  }
+
         private bool _serverIsOn;
 
         #region Properties
@@ -37,43 +36,23 @@ namespace SocketsChat.Models
         }
 
         private ManualResetEvent ResetEvent { get; }
-        private uint MessageCounter { get; set; }
 
-        public ICollection<IMessage> Messages { get; }
-        public ICollection<IMessage> PendingMessages { get; }
+        public ICollection<Message> Messages => Client.Messages;
+        public ICollection<Message> PendingMessages => Client.PendingMessages;
 
-        public EndPoint ConnectAdress
-        {
-            get { return _connectAdress; }
-            private set
-            {
-                if (Equals(value, _connectAdress)) return;
-                _connectAdress = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CanSendMessage));
-            }
-        }
+        public EndPoint ConnectAdress => Client.Adress;
 
-        public string Nickname
-        {
-            get { return _nickname; }
-            private set
-            {
-                if (value == _nickname) return;
-                _nickname = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CanSendMessage));
-            }
-        }
+        public string Nickname { get; private set; }
 
         public bool CanSendMessage => ConnectAdress != null && !string.IsNullOrWhiteSpace(Nickname);
 
         #endregion
 
-        public ChatServer()
+        public Server()
         {
-            Messages = new ObservableCollection<IMessage>();
-            PendingMessages = new ObservableCollection<IMessage>();
+            Client = new Client();
+
+            Client.PropertyChanged += (sender, args) => OnPropertyChanged(args.PropertyName);
 
             Nickname = string.Empty;
 
@@ -119,7 +98,7 @@ namespace SocketsChat.Models
                 var bytes = new byte[acceptSize];
                 var messageText = string.Empty;
 
-                while ((count = accept.Receive(bytes)) > 0) // todo async revieve
+                while ((count = accept.Receive(bytes)) > 0) // todo async recieve
                     messageText += count == acceptSize
                         ? Encoding.UTF8.GetString(bytes)
                         : Encoding.UTF8.GetString(bytes.Take(count).ToArray());
@@ -138,8 +117,9 @@ namespace SocketsChat.Models
                 case nameof(Message):
                     {
                         var message = JsonConvert.DeserializeObject<TypeWrapper<Message>>(messageText).Obj;
-                        message.RecieveTime = DateTime.Now;
-                        Messages.Add(message);
+
+                        Client.Recieve(message);
+
                         var answer = new Answer(message.Number, DateTime.Now);
                         Send(answer);
                         break;
@@ -147,11 +127,8 @@ namespace SocketsChat.Models
                 case nameof(Answer):
                     {
                         var answer = JsonConvert.DeserializeObject<TypeWrapper<Answer>>(messageText).Obj;
-                        var message = PendingMessages.FirstOrDefault(msg => msg.Number == answer.Number);
-                        if (message == null) return;
-                        PendingMessages.Remove(message);
-                        message.RecieveTime = answer.AnswerTime;
-                        Messages.Add(message);
+
+                        Client.Recieve(answer);
                         break;
                     }
                 default:
@@ -175,7 +152,7 @@ namespace SocketsChat.Models
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(messageText));
 
-            Messages.Add(new Message(MessageCounter++, "Server", messageText)
+            Messages.Add(new Message(Client.MessageCounter++, "Server", messageText)
             {
                 RecieveTime = DateTime.Now
             });
@@ -187,7 +164,8 @@ namespace SocketsChat.Models
 
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
                 socket.Connect(connectEndPoint);
-            ConnectAdress = connectEndPoint;
+            
+            Client.Adress = connectEndPoint;
             ServerMessage($"Succesfully connected to {ConnectAdress}");
         }
 
@@ -209,7 +187,7 @@ namespace SocketsChat.Models
 
         public void SendMessage(string text)
         {
-            var message = new Message(MessageCounter++, Nickname, text.Trim());
+            var message = new Message(Client.MessageCounter++, Nickname, text.Trim());
             PendingMessages.Add(message);
             Send(message);
         }
@@ -248,33 +226,6 @@ namespace SocketsChat.Models
                 if (obj == null)
                     throw new ArgumentNullException(nameof(obj));
                 Obj = obj;
-            }
-        }
-
-        private class Message : IMessage
-        {
-            public uint Number { get; }
-            public string NickName { get; }
-            public DateTime? RecieveTime { get; set; }
-            public string MessageText { get; }
-
-            public Message(uint number, string nickName, string messageText)
-            {
-                Number = number;
-                NickName = nickName;
-                MessageText = messageText;
-            }
-        }
-
-        private class Answer
-        {
-            public uint Number { get; }
-            public DateTime AnswerTime { get; }
-
-            public Answer(uint number, DateTime answerTime)
-            {
-                Number = number;
-                AnswerTime = answerTime;
             }
         }
 

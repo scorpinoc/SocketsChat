@@ -28,7 +28,7 @@
             <Label Content="{Binding ElementName=Window, Path=Nickname}"/>
         </StackPanel>
         <Label Grid.Row="2" Content="Chat" />
-        <ScrollViewer Grid.Row="3">
+        <ScrollViewer Grid.Row="3" MaxHeight="300">
             <StackPanel>
                 <ItemsControl BorderThickness="2" BorderBrush="LightGreen"
                               ItemsSource="{Binding ElementName=Window, Path=Messages}">

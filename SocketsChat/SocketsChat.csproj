@@ -63,6 +63,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Answer.cs" />
+    <Compile Include="Models\Client.cs" />
+    <Compile Include="Models\Message.cs" />
     <Compile Include="ViewModel.cs" />
     <Page Include="IPEndPointRequestWindow.xaml">
       <SubType>Designer</SubType>
@@ -77,7 +80,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DelegateCommand.cs" />
-    <Compile Include="Models\IMessage.cs" />
     <Compile Include="IPEndPointRequestWindow.xaml.cs">
       <DependentUpon>IPEndPointRequestWindow.xaml</DependentUpon>
     </Compile>
@@ -91,7 +93,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\ChatServer.cs" />
+    <Compile Include="Models\Server.cs" />
     <Compile Include="NicknameChooseWindow.xaml.cs">
       <DependentUpon>NicknameChooseWindow.xaml</DependentUpon>
     </Compile>
