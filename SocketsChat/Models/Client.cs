@@ -11,6 +11,37 @@ namespace SocketsChat.Models
 {
     public sealed class Client : INotifyPropertyChanged
     {
+        private EndPoint _adress;
+
+        #region Properties
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public uint MessageCounter { get; set; }
+        public ICollection<Message> Messages { get; }
+        public ICollection<Message> PendingMessages { get; }
+
+        // todo readonly
+        public EndPoint Adress
+        {
+            get { return _adress; }
+            set
+            {
+                if (Equals(value, _adress)) return;
+                _adress = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
+        public Client()
+        {
+            Messages = new ObservableCollection<Message>();
+            PendingMessages = new ObservableCollection<Message>();
+        }
+
+        #region Methods
+
         public void Recieve(Message message)
         {
             message.RecieveTime = DateTime.Now;
@@ -25,33 +56,10 @@ namespace SocketsChat.Models
             Messages.Add(message);
         }
 
-        private EndPoint _adress;
-
-        // todo readonly
-        public EndPoint Adress
-        {
-            get { return _adress; }
-            set
-            {
-                if (Equals(value, _adress)) return;
-                _adress = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public Client()
-        {
-            Messages = new ObservableCollection<Message>();
-            PendingMessages = new ObservableCollection<Message>();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        public uint MessageCounter { get; set; }
-        public ICollection<Message> Messages { get; }
-        public ICollection<Message> PendingMessages { get; }
-
         [NotifyPropertyChangedInvocator]
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        #endregion
     }
 }

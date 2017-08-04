@@ -12,17 +12,21 @@ using Newtonsoft.Json;
 using SocketsChat.Annotations;
 
 // todo ! refactor
+
 namespace SocketsChat.Models
 {
     public sealed class Server : INotifyPropertyChanged
     {
-        private Client Client { get;  }
-
         private bool _serverIsOn;
 
         #region Properties
 
         public event PropertyChangedEventHandler PropertyChanged;
+        private Client Client { get; }
+
+        private ManualResetEvent ResetEvent { get; }
+
+        public string Nickname { get; private set; }
 
         public bool ServerIsOn
         {
@@ -35,14 +39,10 @@ namespace SocketsChat.Models
             }
         }
 
-        private ManualResetEvent ResetEvent { get; }
-
         public ICollection<Message> Messages => Client.Messages;
         public ICollection<Message> PendingMessages => Client.PendingMessages;
 
         public EndPoint ConnectAdress => Client.Adress;
-
-        public string Nickname { get; private set; }
 
         public bool CanSendMessage => ConnectAdress != null && !string.IsNullOrWhiteSpace(Nickname);
 
@@ -91,7 +91,7 @@ namespace SocketsChat.Models
 
             ResetEvent.Set();
 
-            using (var accept = ((Socket)ar.AsyncState).EndAccept(ar))
+            using (var accept = ((Socket) ar.AsyncState).EndAccept(ar))
             {
                 int count;
                 const int acceptSize = 4096;
@@ -115,22 +115,22 @@ namespace SocketsChat.Models
             switch (JsonConvert.DeserializeObject<TypeWrapper>(messageText).Type)
             {
                 case nameof(Message):
-                    {
-                        var message = JsonConvert.DeserializeObject<TypeWrapper<Message>>(messageText).Obj;
+                {
+                    var message = JsonConvert.DeserializeObject<TypeWrapper<Message>>(messageText).Obj;
 
-                        Client.Recieve(message);
+                    Client.Recieve(message);
 
-                        var answer = new Answer(message.Number, DateTime.Now);
-                        Send(answer);
-                        break;
-                    }
+                    var answer = new Answer(message.Number, DateTime.Now);
+                    Send(answer);
+                    break;
+                }
                 case nameof(Answer):
-                    {
-                        var answer = JsonConvert.DeserializeObject<TypeWrapper<Answer>>(messageText).Obj;
+                {
+                    var answer = JsonConvert.DeserializeObject<TypeWrapper<Answer>>(messageText).Obj;
 
-                        Client.Recieve(answer);
-                        break;
-                    }
+                    Client.Recieve(answer);
+                    break;
+                }
                 default:
                     throw new TypeAccessException("Type not implemented");
             }
@@ -164,7 +164,7 @@ namespace SocketsChat.Models
 
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
                 socket.Connect(connectEndPoint);
-            
+
             Client.Adress = connectEndPoint;
             ServerMessage($"Succesfully connected to {ConnectAdress}");
         }
