@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using SocketsChat.Annotations;
@@ -31,7 +33,7 @@ namespace SocketsChat
                 value = default(T);
                 return false;
             }
-            value = (T)window.GetType().GetProperty(propertyName).GetValue(window);
+            value = (T) window.GetType().GetProperty(propertyName).GetValue(window);
             return true;
         }
 
@@ -43,38 +45,37 @@ namespace SocketsChat
 
         public ICommand SendCommand { get; }
         public ICommand ConnectCommand { get; }
-        public ICommand ChooseNicknameCommand { get; }
 
         public string ServerAdress { get; private set; }
 
-        public string ConnectEndPoint => ViewModel.ConnectAdress?.ToString();
-
         public string Nickname => ViewModel.Nickname;
 
-        public IEnumerable<Message> Messages => ViewModel.Messages;
-        public IEnumerable<Message> PendingMessages => ViewModel.PendingMessages;
-
-        public bool CanSendMessage => ViewModel.CanSendMessage;
+        public IEnumerable<Client> Clients => ViewModel.Clients;
 
         #endregion
 
         public MainWindow()
         {
-            ViewModel = new ViewModel();
+            // todo rework
+            var nickname = string.Empty;
+            Try(() =>
+            {
+                var valueGet = TryGetValueFrom(new NicknameChooseWindow("Guest #" + new Random().Next(1, 1000)),
+                    nameof(NicknameChooseWindow.Nickname), out nickname);
+                if (!valueGet)
+                    Close();
+            });
 
-            BindingOperations.EnableCollectionSynchronization(Messages, new object());
-            BindingOperations.EnableCollectionSynchronization(PendingMessages, new object());
+            ViewModel = new ViewModel(nickname);
 
             ViewModel.PropertyChanged += (sender, args) => PropertyChanged?.Invoke(this, args);
 
             TryOpenServer();
 
-            SendCommand = DelegateCommand.CreateCommand(TrySendMessage, () => ViewModel.SendMessageCommand.CanExecute(null), ViewModel);
+            SendCommand = DelegateCommand.CreateCommand<Client, TextBox>(TrySendMessage,
+                (client, box) => ViewModel.SendMessageCommand.CanExecute(new object[] {client, box.Text}), ViewModel);
 
-            ConnectCommand = DelegateCommand.CreateCommand(TryConnect, () => ViewModel.ConnectCommand.CanExecute(null), ViewModel);
-
-            ChooseNicknameCommand = DelegateCommand.CreateCommand(TrySetNickname,
-                () => ViewModel.SetNicknameCommand.CanExecute(null), ViewModel);
+            ConnectCommand = DelegateCommand.CreateCommand(TryConnect);
 
             InitializeComponent();
         }
@@ -93,6 +94,7 @@ namespace SocketsChat
                     Close();
 
                 ServerAdress = serverAdress.ToString();
+
                 ThreadPool.QueueUserWorkItem(
                     state =>
                         Try(() => ViewModel.OpenServerCommand.Execute(serverAdress), () => InvokeInMainThread(Close)));
@@ -112,25 +114,12 @@ namespace SocketsChat
             });
         }
 
-        private void TrySetNickname()
+        private void TrySendMessage(Client client, TextBox textBox)
         {
             Try(() =>
             {
-                string nickname;
-                var valueGet = TryGetValueFrom(new NicknameChooseWindow("Guest #" + new Random().Next(1, 1000)),
-                    nameof(NicknameChooseWindow.Nickname), out nickname);
-                if (valueGet)
-                    ViewModel.SetNicknameCommand.Execute(nickname);
-            });
-        }
-
-        private void TrySendMessage()
-        {
-            Try(() =>
-            {
-                var message = MessageText.Text;
-                MessageText.Clear();
-                ViewModel.SendMessageCommand.Execute(message);
+                ViewModel.SendMessageCommand.Execute(new object[] {client, textBox.Text});
+                textBox.Clear();
             });
         }
 
@@ -147,7 +136,10 @@ namespace SocketsChat
             }
             catch (Exception e)
             {
-                MessageBoxWith(e.Message);
+                // todo accumulate inner exceptions
+                MessageBoxWith(e.Message + (e.InnerException == null
+                    ? ""
+                    : " => " + e.InnerException.Message));
             }
             finally
             {
@@ -156,5 +148,16 @@ namespace SocketsChat
         }
 
         #endregion
+    }
+
+    public class MultiBingingToParamsConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+            => values.Clone();
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

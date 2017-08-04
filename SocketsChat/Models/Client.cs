@@ -1,47 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
-using SocketsChat.Annotations;
 
 namespace SocketsChat.Models
 {
-    public sealed class Client : INotifyPropertyChanged
+    public sealed class Client
     {
-        private EndPoint _adress;
-
         #region Properties
 
-        public event PropertyChangedEventHandler PropertyChanged;
         public uint MessageCounter { get; set; }
         public ICollection<Message> Messages { get; }
         public ICollection<Message> PendingMessages { get; }
 
-        // todo readonly
-        public EndPoint Adress
-        {
-            get { return _adress; }
-            set
-            {
-                if (Equals(value, _adress)) return;
-                _adress = value;
-                OnPropertyChanged();
-            }
-        }
+        public IPEndPoint Adress { get; }
+
+        public string Nickname { get; set; }
+
+        public Guid ClientId { get; set; }
 
         #endregion
 
-        public Client()
+        public Client(IPEndPoint adress)
         {
-            Messages = new ObservableCollection<Message>();
-            PendingMessages = new ObservableCollection<Message>();
+            Adress = adress;
+            Messages = new SynchronizedObservableCollection<Message>();
+            PendingMessages = new SynchronizedObservableCollection<Message>();
         }
 
         #region Methods
 
+        // todo from and return Answer
         public void Recieve(Message message)
         {
             message.RecieveTime = DateTime.Now;
@@ -55,10 +44,6 @@ namespace SocketsChat.Models
             message.RecieveTime = answer.AnswerTime;
             Messages.Add(message);
         }
-
-        [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         #endregion
     }

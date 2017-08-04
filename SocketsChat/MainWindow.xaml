@@ -3,76 +3,99 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:socketsChat="clr-namespace:SocketsChat"
+        xmlns:models="clr-namespace:SocketsChat.Models"
         mc:Ignorable="d"
         Title="Chat"
         x:Name="Window"
         SizeToContent="WidthAndHeight"
         ResizeMode="CanResize"
         MinHeight="350" MinWidth="525">
+    <Window.Resources>
+        <socketsChat:MultiBingingToParamsConverter x:Key="ParamsConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Label Grid.Row="0"
-               Content="{Binding ElementName=Window, Path=ServerAdress}"
-               ContentStringFormat="{}Server openned on {0}." />
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Label Content="{Binding ElementName=Window, Path=ServerAdress}"
+                   ContentStringFormat="{}Server openned on {0}." />
+            <Label Content="{Binding ElementName=Window, Path=Nickname}"
+                   ContentStringFormat="{}Nickname set as {0}." />
+        </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal">
             <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="Connect to:" />
-            <Label Content="{Binding ElementName=Window, Path=ConnectEndPoint}" />
-            <Button Command="{Binding ElementName=Window, Path=ChooseNicknameCommand}"
-                    Content="Choose nickname: "/>
-            <Label Content="{Binding ElementName=Window, Path=Nickname}"/>
         </StackPanel>
         <Label Grid.Row="2" Content="Chat" />
-        <ScrollViewer Grid.Row="3" MaxHeight="300">
-            <StackPanel>
-                <ItemsControl BorderThickness="2" BorderBrush="LightGreen"
-                              ItemsSource="{Binding ElementName=Window, Path=Messages}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBox IsReadOnly="True" BorderThickness="0">
-                                <TextBox.Text>
-                                    <MultiBinding StringFormat="{}({0:HH:mm:ss}) from {1}: {2}">
-                                        <Binding Path="RecieveTime" Mode="OneWay" />
-                                        <Binding Path="NickName" Mode="OneWay" />
-                                        <Binding Path="MessageText" Mode="OneWay" />
+        <TabControl Grid.Row="3"
+                    ItemsSource="{Binding ElementName=Window, Path=Clients}"
+                    DisplayMemberPath="Nickname">
+            <TabControl.ContentTemplate>
+                <DataTemplate DataType="models:Client">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <ScrollViewer MaxHeight="300">
+                            <StackPanel>
+                                <ItemsControl BorderThickness="2" BorderBrush="LightGreen"
+                                              ItemsSource="{Binding Path=Messages}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBox IsReadOnly="True" BorderThickness="0">
+                                                <TextBox.Text>
+                                                    <MultiBinding StringFormat="{}({0:HH:mm:ss}) from {1}: {2}">
+                                                        <Binding Path="RecieveTime" Mode="OneWay" />
+                                                        <Binding Path="NickName" Mode="OneWay" />
+                                                        <Binding Path="MessageText" Mode="OneWay" />
+                                                    </MultiBinding>
+                                                </TextBox.Text>
+                                            </TextBox>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ItemsControl BorderThickness="2" BorderBrush="LightCoral"
+                                              ItemsSource="{Binding Path=PendingMessages}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBox IsReadOnly="True" BorderThickness="0">
+                                                <TextBox.Text>
+                                                    <MultiBinding StringFormat="{}(sending...) from {0}: {1}">
+                                                        <Binding Path="NickName" Mode="OneWay" />
+                                                        <Binding Path="MessageText" Mode="OneWay" />
+                                                    </MultiBinding>
+                                                </TextBox.Text>
+                                            </TextBox>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox AcceptsReturn="True" AcceptsTab="True"/>
+                            <Button Grid.Column="1" Width="55" Content="Send"
+                                        Command="{Binding ElementName=Window, Path=SendCommand}">
+                                <Button.CommandParameter>
+                                    <MultiBinding Converter="{StaticResource ParamsConverter}">
+                                        <Binding/>
+                                        <Binding Path="Children[0]"
+                                                 RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Grid}}" />
                                     </MultiBinding>
-                                </TextBox.Text>
-                            </TextBox>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <ItemsControl BorderThickness="2" BorderBrush="LightCoral"
-                              ItemsSource="{Binding ElementName=Window, Path=PendingMessages}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBox IsReadOnly="True" BorderThickness="0">
-                                <TextBox.Text>
-                                    <MultiBinding StringFormat="{}(sending...) from {0}: {1}">
-                                        <Binding Path="NickName" Mode="OneWay" />
-                                        <Binding Path="MessageText" Mode="OneWay" />
-                                    </MultiBinding>
-                                </TextBox.Text>
-                            </TextBox>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </ScrollViewer>
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBox x:Name="MessageText" AcceptsReturn="True" AcceptsTab="True"
-                     IsEnabled="{Binding ElementName=Window, Path=CanSendMessage}"/>
-            <Button Grid.Column="1"
-                    Command="{Binding ElementName=Window, Path=SendCommand}"
-                    Width="55" Content="Send" />
-        </Grid>
+                                </Button.CommandParameter>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
     </Grid>
 </Window>

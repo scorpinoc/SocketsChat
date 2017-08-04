@@ -15,36 +15,30 @@ namespace SocketsChat
         public event PropertyChangedEventHandler PropertyChanged;
 
         private Server Server { get; }
+
         public ICommand OpenServerCommand { get; }
         public ICommand ConnectCommand { get; }
-        public ICommand SetNicknameCommand { get; }
         public ICommand SendMessageCommand { get; }
 
-        public EndPoint ConnectAdress => Server.ConnectAdress;
         public string Nickname => Server.Nickname;
 
-        public IEnumerable<Message> Messages => Server.Messages;
-        public IEnumerable<Message> PendingMessages => Server.PendingMessages;
-
-        public bool CanSendMessage => Server.CanSendMessage;
+        public IEnumerable<Client> Clients => Server.Clients;
 
         #endregion
 
-        public ViewModel()
+        public ViewModel(string nickname)
         {
-            Server = new Server();
+            MainDispatcher.Initialize();
+
+            Server = new Server(nickname);
 
             // ReSharper disable once RedundantArgumentDefaultValue
             Server.PropertyChanged += (sender, args) => OnPropertyChanged(null);
 
-            OpenServerCommand = DelegateCommand.CreateCommand<EndPoint>(Server.OpenServer,
-                point => !Server.ServerIsOn, Server);
-            ConnectCommand = DelegateCommand.CreateCommand<EndPoint>(Server.Connect,
-                point => Server.ConnectAdress == null, Server);
-            SetNicknameCommand = DelegateCommand.CreateCommand<string>(Server.SetNickname,
-                s => string.IsNullOrWhiteSpace(Server.Nickname), Server);
-            SendMessageCommand = DelegateCommand.CreateCommand<string>(Server.SendMessage,
-                s => Server.CanSendMessage, Server);
+            OpenServerCommand = DelegateCommand.CreateCommand<IPEndPoint>(Server.OpenServer, point => !Server.ServerIsOn,
+                Server);
+            ConnectCommand = DelegateCommand.CreateCommand<IPEndPoint>(Server.ConnectTo, point => point != null);
+            SendMessageCommand = DelegateCommand.CreateCommand<Client, string>(Server.SendMessage);
         }
 
         #region Methods

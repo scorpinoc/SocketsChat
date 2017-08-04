@@ -2,7 +2,7 @@ using System;
 
 namespace SocketsChat.Models
 {
-    public class Answer 
+    public class Answer
     {
         public uint Number { get; }
         public DateTime AnswerTime { get; }

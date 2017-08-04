@@ -63,9 +63,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="MainDispatcher.cs" />
     <Compile Include="Models\Answer.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\Message.cs" />
+    <Compile Include="SynchronizedObservableCollection.cs" />
     <Compile Include="ViewModel.cs" />
     <Page Include="IPEndPointRequestWindow.xaml">
       <SubType>Designer</SubType>
