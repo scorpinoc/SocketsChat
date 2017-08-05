@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,8 +12,6 @@ using System.Windows.Input;
 using ChatServer;
 using ChatServer.Models;
 using SocketsChat.Annotations;
-
-// todo refactoring 
 
 namespace SocketsChat
 {
@@ -36,6 +35,14 @@ namespace SocketsChat
             }
             value = (T) window.GetType().GetProperty(propertyName).GetValue(window);
             return true;
+        }
+
+        private static void SetBorderPadding(object sender, double thickness)
+        {
+            var control = sender as Control;
+            if (control == null) return;
+            control.BorderThickness = new Thickness(thickness);
+            control.Padding = new Thickness(thickness);
         }
 
         #region Properties
@@ -137,16 +144,23 @@ namespace SocketsChat
             }
             catch (Exception e)
             {
-                // todo accumulate inner exceptions
-                MessageBoxWith(e.Message + (e.InnerException == null
-                    ? ""
-                    : " => " + e.InnerException.Message));
+                if (e is TargetInvocationException && e.InnerException != null)
+                    e = e.InnerException;
+
+                MessageBoxWith(e.Message);
             }
             finally
             {
                 finallyAction?.Invoke();
             }
         }
+
+        private void ScrollViewer_OnSizeChanged(object sender, SizeChangedEventArgs e)
+            => (sender as ScrollViewer)?.ScrollToEnd();
+
+        private void IncreaseBorderOnMouseEnter(object sender, MouseEventArgs e) => SetBorderPadding(sender, 0.5);
+
+        private void DecreaseBorderOnMouseLeave(object sender, MouseEventArgs e) => SetBorderPadding(sender, 0);
 
         #endregion
     }

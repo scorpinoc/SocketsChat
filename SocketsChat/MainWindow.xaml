@@ -14,40 +14,34 @@
     <Window.Resources>
         <socketsChat:MultiBingingToParamsConverter x:Key="ParamsConverter"/>
     </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Label Content="{Binding ElementName=Window, Path=ServerAdress}"
-                   ContentStringFormat="{}Server openned on {0}." />
-            <Label Content="{Binding ElementName=Window, Path=Nickname}"
-                   ContentStringFormat="{}Nickname set as {0}." />
-        </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="Connect to:" />
-        </StackPanel>
-        <Label Grid.Row="2" Content="Chat" />
-        <TabControl Grid.Row="3"
-                    ItemsSource="{Binding ElementName=Window, Path=Clients}"
+    <DockPanel>
+        <WrapPanel DockPanel.Dock="Top">
+            <StackPanel>
+                <Label Content="{Binding ElementName=Window, Path=ServerAdress}"
+                       ContentStringFormat="{}Server openned on {0}." />
+                <Label Content="{Binding ElementName=Window, Path=Nickname}"
+                       ContentStringFormat="{}Nickname set as {0}." />
+            </StackPanel>
+            <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="New connection" />
+        </WrapPanel>
+        <TabControl ItemsSource="{Binding ElementName=Window, Path=Clients}"
                     DisplayMemberPath="Nickname">
             <TabControl.ContentTemplate>
                 <DataTemplate DataType="models:Client">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <ScrollViewer MaxHeight="300">
+                        <ScrollViewer MaxHeight="300" SizeChanged="ScrollViewer_OnSizeChanged" >
                             <StackPanel>
-                                <ItemsControl BorderThickness="2" BorderBrush="LightGreen"
-                                              ItemsSource="{Binding Path=Messages}">
+                                <ItemsControl ItemsSource="{Binding Path=Messages}"
+                                              BorderThickness="2" BorderBrush="LightGreen">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBox IsReadOnly="True" BorderThickness="0">
+                                            <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Green"
+                                                     MouseEnter="IncreaseBorderOnMouseEnter"
+                                                     MouseLeave="DecreaseBorderOnMouseLeave">
                                                 <TextBox.Text>
                                                     <MultiBinding StringFormat="{}({0:HH:mm:ss}) from {1}: {2}">
                                                         <Binding Path="RecieveTime" Mode="OneWay" />
@@ -59,11 +53,13 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <ItemsControl BorderThickness="2" BorderBrush="LightCoral"
-                                              ItemsSource="{Binding Path=PendingMessages}">
+                                <ItemsControl ItemsSource="{Binding Path=PendingMessages}"
+                                              BorderThickness="2" BorderBrush="LightCoral">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBox IsReadOnly="True" BorderThickness="0">
+                                            <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Coral"
+                                                     MouseEnter="IncreaseBorderOnMouseEnter"
+                                                     MouseLeave="DecreaseBorderOnMouseLeave">
                                                 <TextBox.Text>
                                                     <MultiBinding StringFormat="{}(sending...) from {0}: {1}">
                                                         <Binding Path="NickName" Mode="OneWay" />
@@ -82,8 +78,8 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox AcceptsReturn="True" AcceptsTab="True"/>
-                            <Button Grid.Column="1" Width="55" Content="Send"
-                                        Command="{Binding ElementName=Window, Path=SendCommand}">
+                            <Button Command="{Binding ElementName=Window, Path=SendCommand}"
+                                    Grid.Column="1" Width="55" Content="Send">
                                 <Button.CommandParameter>
                                     <MultiBinding Converter="{StaticResource ParamsConverter}">
                                         <Binding/>
@@ -97,5 +93,5 @@
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>
-    </Grid>
+    </DockPanel>
 </Window>
