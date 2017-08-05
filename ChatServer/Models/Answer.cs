@@ -1,6 +1,6 @@
 using System;
 
-namespace SocketsChat.Models
+namespace ChatServer.Models
 {
     public class Answer
     {

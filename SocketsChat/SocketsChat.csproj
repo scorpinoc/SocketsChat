@@ -39,10 +39,6 @@
     </ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -63,12 +59,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="MainDispatcher.cs" />
-    <Compile Include="Models\Answer.cs" />
-    <Compile Include="Models\Client.cs" />
-    <Compile Include="Models\Message.cs" />
-    <Compile Include="SynchronizedObservableCollection.cs" />
-    <Compile Include="ViewModel.cs" />
     <Page Include="IPEndPointRequestWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -81,7 +71,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DelegateCommand.cs" />
     <Compile Include="IPEndPointRequestWindow.xaml.cs">
       <DependentUpon>IPEndPointRequestWindow.xaml</DependentUpon>
     </Compile>
@@ -95,7 +84,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\Server.cs" />
     <Compile Include="NicknameChooseWindow.xaml.cs">
       <DependentUpon>NicknameChooseWindow.xaml</DependentUpon>
     </Compile>
@@ -117,7 +105,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -126,6 +113,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ChatServer\ChatServer.csproj">
+      <Project>{024A545B-1C9F-4BC1-B135-15F0E76A045E}</Project>
+      <Name>ChatServer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

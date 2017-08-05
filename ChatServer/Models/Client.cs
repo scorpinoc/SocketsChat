@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-namespace SocketsChat.Models
+namespace ChatServer.Models
 {
     public sealed class Client
     {
@@ -30,7 +30,7 @@ namespace SocketsChat.Models
 
         #region Methods
 
-        // todo from and return Answer
+        // todo form and return Answer
         public void Recieve(Message message)
         {
             message.RecieveTime = DateTime.Now;

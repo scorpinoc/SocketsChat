@@ -1,6 +1,6 @@
 using System.Windows.Threading;
 
-namespace SocketsChat
+namespace ChatServer
 {
     public static class MainDispatcher
     {

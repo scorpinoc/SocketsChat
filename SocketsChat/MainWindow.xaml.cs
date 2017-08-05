@@ -8,8 +8,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using ChatServer;
+using ChatServer.Models;
 using SocketsChat.Annotations;
-using SocketsChat.Models;
 
 // todo refactoring 
 

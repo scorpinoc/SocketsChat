@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
-namespace SocketsChat
+namespace ChatServer
 {
     public class SynchronizedObservableCollection<T> : ICollection<T>, INotifyCollectionChanged
     {

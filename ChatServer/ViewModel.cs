@@ -3,10 +3,10 @@ using System.ComponentModel;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using SocketsChat.Annotations;
-using SocketsChat.Models;
+using ChatServer.Annotations;
+using ChatServer.Models;
 
-namespace SocketsChat
+namespace ChatServer
 {
     public sealed class ViewModel : INotifyPropertyChanged
     {

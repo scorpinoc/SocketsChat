@@ -1,20 +1,19 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using ChatServer;
+using System.Net;
 using System.Windows.Input;
+
 namespace SocketsChat
 {
     /// <summary>
     ///     Логика взаимодействия для IPEndPointRequestWindow.xaml
     /// </summary>
-    // ReSharper disable once InconsistentNaming
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public partial class IPEndPointRequestWindow
     {
-        // ReSharper disable once InconsistentNaming
         public byte IP1 { get; set; }
-        // ReSharper disable once InconsistentNaming
         public byte IP2 { get; set; }
-        // ReSharper disable once InconsistentNaming
         public byte IP3 { get; set; }
-        // ReSharper disable once InconsistentNaming
         public byte IP4 { get; set; }
 
         public int Port { get; set; }

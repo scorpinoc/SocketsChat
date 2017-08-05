@@ -8,12 +8,12 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using ChatServer.Annotations;
 using Newtonsoft.Json;
-using SocketsChat.Annotations;
 
 // todo !! refactor
 
-namespace SocketsChat.Models
+namespace ChatServer.Models
 {
     public sealed class Server : INotifyPropertyChanged
     {
@@ -354,5 +354,6 @@ namespace SocketsChat.Models
         }
 
         #endregion
+
     }
 }
