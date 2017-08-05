@@ -82,7 +82,7 @@ namespace ChatServer.Models
                 throw new InvalidOperationException("Server can be initialized only once.");
             if (serverAdress == null) throw new ArgumentNullException(nameof(serverAdress));
 
-            ServerClient = new Client(serverAdress) {Nickname = "Server"};
+            ServerClient = new Client(serverAdress, Nickname, ServerId);
 
             using (var server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
             {
@@ -139,8 +139,7 @@ namespace ChatServer.Models
                 {
                     var message = JsonConvert.DeserializeObject<MessageWrapper<Message>>(messageText).Message;
                     var client = Clients.Single(c => c.ClientId == messageWrapper.ClientId);
-                    client.Recieve(message);
-                    Send(client.Adress, new Answer(message.Number, DateTime.Now));
+                    Send(client.Adress, client.Recieve(message));
                     break;
                 }
                 case nameof(Answer):
@@ -190,11 +189,7 @@ namespace ChatServer.Models
                 throw new Exception(
                     $"Connect from {clientData.Adress} aborted; Client with such Guid already connected");
 
-            var registratingClient = new Client(clientAdress)
-            {
-                Nickname = clientData.Nickname,
-                ClientId = messageWrapper.ClientId
-            };
+            var registratingClient = new Client(clientAdress, clientData.Nickname, messageWrapper.ClientId);
             ClientsCollection.Add(registratingClient);
             ServerMessage($"Connect from {clientData.Adress} with nickname: {clientData.Nickname}");
             Send(clientAdress, new ClientData(Nickname, ServerAdress, ClientData.Action.Answer));
@@ -209,9 +204,7 @@ namespace ChatServer.Models
 
             var pendingClient = PendingClients[clientAdress];
             PendingClients.Remove(clientAdress);
-
-            pendingClient.Nickname = clientData.Nickname;
-            pendingClient.ClientId = messageWrapper.ClientId;
+            pendingClient.Registrate(clientData.Nickname, messageWrapper.ClientId);
 
             if (ServerId != messageWrapper.ClientId)
                 ClientsCollection.Add(pendingClient);
@@ -261,7 +254,7 @@ namespace ChatServer.Models
         {
             if (client == ServerClient) return;
             var message = new Message(client.MessageCounter++, Nickname, text.Trim());
-            client.PendingMessages.Add(message);
+            client.Queue(message);
             Send(client.Adress, message);
         }
 
