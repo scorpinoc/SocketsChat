@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using ChatServer;
 using ChatServer.Models;
+using ChatServer.Utility;
 using WpfApp.Properties;
 
 namespace WpfApp

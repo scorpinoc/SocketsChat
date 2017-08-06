@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 // ReSharper disable UnusedMember.Global
 
-namespace ChatServer
+namespace ChatServer.Utility
 {
     // todo create complex command
 

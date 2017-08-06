@@ -3,17 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Windows.Threading;
 
-namespace ChatServer
+namespace ChatServer.Utility
 {
-    public class SynchronizedObservableCollection<T> : ICollection<T>, INotifyCollectionChanged
+    public class ControlledObservableCollection<T> : ICollection<T>, INotifyCollectionChanged
     {
-        private static void Synchronize(Action action) => MainDispatcher.Dispatcher.Invoke(action);
-
         #region Properties
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
+        private Dispatcher Dispatcher { get; }
         private ICollection<T> Collection { get; }
 
         public int Count => Collection.Count;
@@ -21,8 +21,10 @@ namespace ChatServer
 
         #endregion
 
-        public SynchronizedObservableCollection()
+        public ControlledObservableCollection(Dispatcher dispatcher)
         {
+            Dispatcher = dispatcher;
+            
             var collection = new ObservableCollection<T>();
             collection.CollectionChanged += (sender, args) => Synchronize(() =>
                 CollectionChanged?.Invoke(this, args));
@@ -31,6 +33,8 @@ namespace ChatServer
         }
 
         #region Methods
+
+        private void Synchronize(Action action) => Dispatcher.Invoke(action);
 
         public IEnumerator<T> GetEnumerator() => Collection.GetEnumerator();
 

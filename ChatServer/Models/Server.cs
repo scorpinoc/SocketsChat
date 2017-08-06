@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using ChatServer.Annotations;
+using ChatServer.Utility;
 using Newtonsoft.Json;
 
 // todo !! refactor
@@ -54,7 +55,7 @@ namespace ChatServer.Models
 
         public Server(string nickname)
         {
-            MainDispatcher.Initialize();
+            MainThreadDispatcher.Initialize();
 
             if (string.IsNullOrWhiteSpace(nickname))
                 // ReSharper disable once LocalizableElement
@@ -69,7 +70,7 @@ namespace ChatServer.Models
 
             ResetEvent = new ManualResetEvent(false);
 
-            ClientsCollection = new SynchronizedObservableCollection<Client>();
+            ClientsCollection = new ControlledObservableCollection<Client>(MainThreadDispatcher.Dispatcher);
 
             PendingClients = new Dictionary<IPEndPoint, Client>();
         }
@@ -93,7 +94,7 @@ namespace ChatServer.Models
 
                 ClientsCollection.Add(ServerClient);
                 ServerMessage($"Server opened on {serverAdress}");
-                ServerMessage($"Nickname set as '{Nickname}'"); // todo redo and delete
+                ServerMessage($"Nickname set as '{Nickname}'");
 
                 while (true)
                 {
@@ -229,10 +230,7 @@ namespace ChatServer.Models
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(messageText));
 
-            ServerClient.Messages.Add(new Message(ServerClient.MessageCounter++, ServerClient.Nickname, messageText)
-            {
-                RecieveTime = DateTime.Now
-            });
+            ServerClient.Add(messageText.Trim());
         }
 
         public void ConnectTo([NotNull] IPEndPoint adress)
@@ -252,9 +250,9 @@ namespace ChatServer.Models
 
         public void SendMessage(Client client, string text)
         {
-            if (client == ServerClient) return;
-            var message = new Message(client.MessageCounter++, Nickname, text.Trim());
-            client.Queue(message);
+            if (client == ServerClient) 
+                throw new Exception("Server can't be message reciever");
+            var message = client.Queue(Nickname, text.Trim());
             Send(client.Adress, message);
         }
 

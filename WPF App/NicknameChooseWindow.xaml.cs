@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using ChatServer;
+using ChatServer.Utility;
 using WpfApp.Properties;
 
 namespace WpfApp

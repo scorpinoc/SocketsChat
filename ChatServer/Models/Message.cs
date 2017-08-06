@@ -6,7 +6,7 @@ namespace ChatServer.Models
     {
         public uint Number { get; }
         public string NickName { get; }
-        public DateTime? RecieveTime { get; set; }
+        public DateTime? RecieveTime { get; internal set; }
         public string MessageText { get; }
 
         public Message(uint number, string nickName, string messageText)

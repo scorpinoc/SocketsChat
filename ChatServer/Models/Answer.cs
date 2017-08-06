@@ -2,7 +2,7 @@ using System;
 
 namespace ChatServer.Models
 {
-    public class Answer
+    internal class Answer
     {
         public uint Number { get; }
         public DateTime AnswerTime { get; }

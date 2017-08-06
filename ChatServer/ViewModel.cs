@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using ChatServer.Annotations;
 using ChatServer.Models;
+using ChatServer.Utility;
 
 namespace ChatServer
 {
@@ -28,7 +29,7 @@ namespace ChatServer
 
         public ViewModel(string nickname)
         {
-            MainDispatcher.Initialize();
+            MainThreadDispatcher.Initialize();
 
             Server = new Server(nickname);
 

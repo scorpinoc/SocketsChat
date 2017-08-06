@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using ChatServer.Annotations;
+using ChatServer.Utility;
 
 namespace ChatServer.Models
 {
@@ -10,15 +11,16 @@ namespace ChatServer.Models
     {
         #region Properties
 
+        private ICollection<Message> MessagesCollection { get; }
         private ICollection<Message> PendingMessagesCollection { get; }
+
+        private uint MessageCounter { get; set; }
 
         public IPEndPoint Adress { get; }
         public string Nickname { get; private set; }
         public Guid ClientId { get; private set; }
 
-        public uint MessageCounter { get; set; }
-        public ICollection<Message> Messages { get; }
-
+        public IEnumerable<Message> Messages => MessagesCollection;
         public IEnumerable<Message> PendingMessages => PendingMessagesCollection;
 
         #endregion
@@ -28,8 +30,11 @@ namespace ChatServer.Models
             if (adress == null) throw new ArgumentNullException(nameof(adress));
 
             Adress = adress;
-            Messages = new SynchronizedObservableCollection<Message>();
-            PendingMessagesCollection = new SynchronizedObservableCollection<Message>();
+
+            var dispatcher = MainThreadDispatcher.Dispatcher;
+
+            MessagesCollection = new ControlledObservableCollection<Message>(dispatcher);
+            PendingMessagesCollection = new ControlledObservableCollection<Message>(dispatcher);
         }
 
         public Client([NotNull] IPEndPoint adress, [NotNull] string nickname, Guid clientId)
@@ -40,7 +45,7 @@ namespace ChatServer.Models
 
         #region Methods
 
-        public void Registrate([NotNull] string nickname, Guid clientId)
+        internal void Registrate([NotNull] string nickname, Guid clientId)
         {
             if (Nickname != null)
                 throw new ArgumentException("Property can't be set twice", nameof(nickname));
@@ -51,22 +56,30 @@ namespace ChatServer.Models
             ClientId = clientId;
         }
 
-        public Answer Recieve(Message message)
+        internal Answer Recieve(Message message)
         {
             message.RecieveTime = DateTime.Now;
-            Messages.Add(message);
+            MessagesCollection.Add(message);
             return new Answer(message.Number, message.RecieveTime.Value);
         }
 
-        public void Recieve(Answer answer)
+        internal void Recieve(Answer answer)
         {
             var message = PendingMessages.First(msg => msg.Number == answer.Number);
             PendingMessagesCollection.Remove(message);
             message.RecieveTime = answer.AnswerTime;
-            Messages.Add(message);
+            MessagesCollection.Add(message);
         }
 
-        public void Queue(Message message) => PendingMessagesCollection.Add(message);
+        internal Message Queue(string nickname, string messageText)
+        {
+            var message = new Message(MessageCounter++, nickname, messageText.Trim());
+            PendingMessagesCollection.Add(message);
+            return message;
+        }
+
+        internal void Add(string message)
+            => MessagesCollection.Add(new Message(MessageCounter++, Nickname, message) {RecieveTime = DateTime.Now});
 
         #endregion
     }

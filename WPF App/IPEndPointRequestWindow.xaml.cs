@@ -2,6 +2,7 @@
 using System.Net;
 using System.Windows.Input;
 using ChatServer;
+using ChatServer.Utility;
 
 namespace WpfApp
 {
