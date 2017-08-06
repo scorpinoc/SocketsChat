@@ -82,7 +82,7 @@ namespace ChatServer.Models
                 throw new InvalidOperationException("Server can be initialized only once.");
             if (serverAdress == null) throw new ArgumentNullException(nameof(serverAdress));
 
-            ServerClient = new Client(serverAdress, Nickname, ServerId);
+            ServerClient = new Client(serverAdress, "Server", Guid.Empty);
 
             using (var server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
             {

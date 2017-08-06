@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using ChatServer;
-using SocketsChat.Annotations;
+using WpfApp.Properties;
 
-namespace SocketsChat
+namespace WpfApp
 {
     /// <summary>
     ///     Логика взаимодействия для NicknameChooseWindow.xaml

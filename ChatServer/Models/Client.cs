@@ -46,8 +46,6 @@ namespace ChatServer.Models
                 throw new ArgumentException("Property can't be set twice", nameof(nickname));
             if (string.IsNullOrWhiteSpace(nickname))
                 throw new ArgumentException("Argument is null or whitespace", nameof(nickname));
-            if (clientId == Guid.Empty)
-                throw new ArgumentException("Argument is empty", nameof(clientId));
 
             Nickname = nickname;
             ClientId = clientId;

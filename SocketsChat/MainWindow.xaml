@@ -1,10 +1,10 @@
-﻿<Window x:Class="SocketsChat.MainWindow"
+﻿<Window x:Class="WpfApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:socketsChat="clr-namespace:SocketsChat"
         xmlns:models="clr-namespace:ChatServer.Models;assembly=ChatServer"
+        xmlns:wpfApp="clr-namespace:WpfApp"
         mc:Ignorable="d"
         Title="Chat"
         x:Name="Window"
@@ -12,7 +12,7 @@
         ResizeMode="CanResize"
         MinHeight="350" MinWidth="525">
     <Window.Resources>
-        <socketsChat:MultiBingingToParamsConverter x:Key="ParamsConverter"/>
+        <wpfApp:MultiBingingToParamsConverter x:Key="ParamsConverter"/>
     </Window.Resources>
     <DockPanel>
         <WrapPanel DockPanel.Dock="Top">

@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using ChatServer;
 using System.Net;
 using System.Windows.Input;
+using ChatServer;
 
-namespace SocketsChat
+namespace WpfApp
 {
     /// <summary>
     ///     Логика взаимодействия для IPEndPointRequestWindow.xaml

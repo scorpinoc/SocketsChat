@@ -1,4 +1,4 @@
-﻿<Window x:Class="SocketsChat.IPEndPointRequestWindow"
+﻿<Window x:Class="WpfApp.IPEndPointRequestWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,35 +8,48 @@
         SizeToContent="WidthAndHeight"
         x:Name="Window">
     <StackPanel>
-        <Label Content="{Binding ElementName=Window,Path=Description}"/>
+        <Label Content="{Binding ElementName=Window,Path=Description}" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Label Grid.Row="0" Grid.Column="0" Content="IP" />
-            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                <TextBox AutomationProperties.IsRequiredForForm="True" Text="{Binding ElementName=Window, Path=IP1}" />
-                <Label Content="." />
-                <TextBox AutomationProperties.IsRequiredForForm="True" Text="{Binding ElementName=Window, Path=IP2}" />
-                <Label Content="." />
-                <TextBox AutomationProperties.IsRequiredForForm="True" Text="{Binding ElementName=Window, Path=IP3}" />
-                <Label Content="." />
-                <TextBox AutomationProperties.IsRequiredForForm="True" Text="{Binding ElementName=Window, Path=IP4}" />
-            </StackPanel>
+            <Grid Grid.Row="0" Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding ElementName=Window, Path=IP1}"
+                         AutomationProperties.IsRequiredForForm="True" />
+                <Label Grid.Column="1" Content="." />
+                <TextBox Grid.Column="2" Text="{Binding ElementName=Window, Path=IP2}"
+                         AutomationProperties.IsRequiredForForm="True" />
+                <Label Grid.Column="3" Content="." />
+                <TextBox Grid.Column="4" Text="{Binding ElementName=Window, Path=IP3}"
+                         AutomationProperties.IsRequiredForForm="True" />
+                <Label Grid.Column="5" Content="." />
+                <TextBox Grid.Column="6" Text="{Binding ElementName=Window, Path=IP4}"
+                         AutomationProperties.IsRequiredForForm="True" />
+            </Grid>
             <Label Grid.Row="1" Grid.Column="0" Content="Port" />
             <TextBox Grid.Row="1" Grid.Column="1"
                      AutomationProperties.IsRequiredForForm="True" Text="{Binding ElementName=Window, Path=Port}" />
         </Grid>
         <UniformGrid Columns="2">
             <Button Content="OK"
-                    Command="{Binding ElementName=Window,Path=OkCommand}"/>
+                    Command="{Binding ElementName=Window,Path=OkCommand}" />
             <Button Content="Cancel"
-                    Command="{Binding ElementName=Window,Path=CancelCommand}"/>
+                    Command="{Binding ElementName=Window,Path=CancelCommand}" />
         </UniformGrid>
     </StackPanel>
 </Window>

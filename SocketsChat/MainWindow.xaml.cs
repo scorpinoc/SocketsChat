@@ -11,9 +11,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using ChatServer;
 using ChatServer.Models;
-using SocketsChat.Annotations;
+using WpfApp.Properties;
 
-namespace SocketsChat
+namespace WpfApp
 {
     /// <summary>
     ///     Логика взаимодействия для MainWindow.xaml
