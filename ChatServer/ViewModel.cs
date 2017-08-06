@@ -36,7 +36,7 @@ namespace ChatServer
             // ReSharper disable once RedundantArgumentDefaultValue
             Server.PropertyChanged += (sender, args) => OnPropertyChanged(null);
 
-            OpenServerCommand = DelegateCommand.CreateCommand<IPEndPoint>(Server.OpenServer, point => !Server.ServerIsOn,
+            OpenServerCommand = DelegateCommand.CreateCommand<IPEndPoint>(Server.OpenServerOn, point => !Server.ServerIsOn,
                 Server);
             ConnectCommand = DelegateCommand.CreateCommand<IPEndPoint>(Server.ConnectTo, point => point != null);
             SendMessageCommand = DelegateCommand.CreateCommand<Client, string>(Server.SendMessage);
