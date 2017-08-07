@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 
-namespace ChatServer.Utility
+namespace ChatServer.Utility.Commands
 {
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public static class DelegateCommand

@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Windows.Input;
-using ChatServer;
-using ChatServer.Utility;
+using ChatServer.Utility.Commands;
 
 namespace WpfApp
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Input;
 
-namespace ChatServer.Utility
+namespace ChatServer.Utility.Commands
 {
     internal abstract class CommandBase : ICommand
     {

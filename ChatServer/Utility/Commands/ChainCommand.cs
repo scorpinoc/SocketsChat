@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 
-namespace ChatServer.Utility
+namespace ChatServer.Utility.Commands
 {
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public static class ChainCommand

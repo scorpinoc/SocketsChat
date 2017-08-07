@@ -6,6 +6,7 @@ using System.Windows.Input;
 using ChatServer.Annotations;
 using ChatServer.Models;
 using ChatServer.Utility;
+using ChatServer.Utility.Commands;
 
 namespace ChatServer
 {
