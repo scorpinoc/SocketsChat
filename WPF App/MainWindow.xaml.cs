@@ -65,7 +65,6 @@ namespace WpfApp
 
         public MainWindow()
         {
-            // todo rework
             var nickname = string.Empty;
             Try(() =>
             {
@@ -81,8 +80,15 @@ namespace WpfApp
 
             TryOpenServer();
 
-            SendCommand = DelegateCommand.CreateCommand<Client, TextBox>(TrySendMessage,
-                (client, box) => ViewModel.SendMessageCommand.CanExecute(new object[] {client, box.Text}), ViewModel);
+            SendCommand = ChainCommand.CreateCommand<Client, TextBox>(ViewModel.SendMessageCommand, (client, box) =>
+            {
+                var objects = new object[] { client, box.Text };
+                box.Clear();
+                return objects;
+            }, (client, box) => new object[] { client, box.Text });
+
+            //SendCommand = DelegateCommand.CreateCommand<Client, TextBox>(TrySendMessage,
+            //    (client, box) => ViewModel.SendMessageCommand.CanExecute(new object[] {client, box.Text}), ViewModel);
 
             ConnectCommand = DelegateCommand.CreateCommand(TryConnect);
 

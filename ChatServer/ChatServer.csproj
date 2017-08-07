@@ -45,6 +45,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utility\ChainCommand.cs" />
+    <Compile Include="Utility\CommandBase.cs" />
     <Compile Include="Utility\DelegateCommand.cs" />
     <Compile Include="Utility\MainThreadDispatcher.cs" />
     <Compile Include="Models\Answer.cs" />
