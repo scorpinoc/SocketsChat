@@ -21,6 +21,8 @@ namespace WpfApp
     /// </summary>
     public partial class MainWindow : INotifyPropertyChanged
     {
+        #region Static
+
         private static bool TryGetValueFrom<T>([NotNull] Window window, [NotNull] string propertyName, out T value)
         {
             if (window == null)
@@ -45,6 +47,8 @@ namespace WpfApp
             control.BorderThickness = new Thickness(thickness);
             control.Padding = new Thickness(thickness);
         }
+
+        #endregion
 
         #region Properties
 
@@ -80,22 +84,36 @@ namespace WpfApp
 
             TryOpenServer();
 
-            SendCommand = ChainCommand.CreateCommand<Client, TextBox>(ViewModel.SendMessageCommand, (client, box) =>
-            {
-                var objects = new object[] { client, box.Text };
-                box.Clear();
-                return objects;
-            }, (client, box) => new object[] { client, box.Text });
-
-            //SendCommand = DelegateCommand.CreateCommand<Client, TextBox>(TrySendMessage,
-            //    (client, box) => ViewModel.SendMessageCommand.CanExecute(new object[] {client, box.Text}), ViewModel);
-
+            SendCommand = CreateSendCommand();
             ConnectCommand = DelegateCommand.CreateCommand(TryConnect);
 
             InitializeComponent();
         }
 
         #region Methods
+
+        private ICommand CreateSendCommand()
+        {
+            var sendCommand = ChainCommand.CreateCommand<Client, TextBox>(ViewModel.SendMessageCommand, (client, box) =>
+            {
+                var objects = new object[] {client, box.Text};
+                box.Clear();
+                return objects;
+            }, (client, box) => new object[] {client, box.Text});
+            return TryCommand.CreateCommand<Client, TextBox>(sendCommand, MessageFrom, e =>
+            {
+                MessageFrom(e);
+                return false;
+            });
+        }
+
+        private void MessageFrom(Exception e)
+        {
+            if (e is TargetInvocationException && e.InnerException != null)
+                e = e.InnerException;
+
+            MessageBoxWith(e.Message);
+        }
 
         private void TryOpenServer()
         {
@@ -129,15 +147,6 @@ namespace WpfApp
             });
         }
 
-        private void TrySendMessage(Client client, TextBox textBox)
-        {
-            Try(() =>
-            {
-                ViewModel.SendMessageCommand.Execute(new object[] {client, textBox.Text});
-                textBox.Clear();
-            });
-        }
-
         private void InvokeInMainThread(Action callback) => Dispatcher.Invoke(callback);
 
         private void MessageBoxWith(string text, string caption = "Error")
@@ -151,10 +160,7 @@ namespace WpfApp
             }
             catch (Exception e)
             {
-                if (e is TargetInvocationException && e.InnerException != null)
-                    e = e.InnerException;
-
-                MessageBoxWith(e.Message);
+                MessageFrom(e);
             }
             finally
             {
