@@ -99,7 +99,7 @@ namespace WpfApp
                 var objects = new object[] {client, box.Text};
                 box.Clear();
                 return objects;
-            }, (client, box) => new object[] {client, box.Text});
+            }, (client, box) => new Tuple<bool, object>(true, new object[] {client, box.Text}));
             return TryCommand.CreateCommand<Client, TextBox>(sendCommand, MessageFrom, e =>
             {
                 MessageFrom(e);

@@ -21,22 +21,6 @@ namespace ChatServer.Utility.Commands
         #region Static
 
         /// <summary>
-        ///     Sets action in case of invoking <see cref="ICommand.CanExecute" /> with <c>null</c> parameter when expectiong for
-        ///     <c><see cref="object" />[]</c>
-        /// </summary>
-        public enum CanExecuteNullParameterInvoke
-        {
-            /// <summary />
-            ReturnTrue,
-
-            /// <summary />
-            ReturnFalse,
-
-            /// <summary />
-            ThrowException
-        }
-
-        /// <summary>
         ///     Creates <see cref="ICommand" /> wich delegates their methods to parameters.
         /// </summary>
         /// <param name="execute">
@@ -174,21 +158,6 @@ namespace ChatServer.Utility.Commands
             CanExecuteNullParameterInvoke canExecuteNullParameterInvoke = CanExecuteNullParameterInvoke.ReturnTrue)
             => new MultiParametersCommand(execute, canExecute ?? ((arg1, arg2, arg3, arg4) => true), notifier,
                     canExecuteNullParameterInvoke);
-
-        private static bool Return(this CanExecuteNullParameterInvoke canExecuteNullParameterInvoke, string parameter)
-        {
-            switch (canExecuteNullParameterInvoke)
-            {
-                case CanExecuteNullParameterInvoke.ReturnTrue:
-                    return true;
-                case CanExecuteNullParameterInvoke.ReturnFalse:
-                    return false;
-                case CanExecuteNullParameterInvoke.ThrowException:
-                    throw new ArgumentNullException(parameter);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(CanExecuteNullParameterInvoke));
-            }
-        }
 
         #endregion
 

@@ -47,6 +47,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utility\Commands\CanExecuteNullParameterInvoke.cs" />
     <Compile Include="Utility\Commands\ChainCommand.cs" />
     <Compile Include="Utility\Commands\CommandBase.cs" />
     <Compile Include="Utility\Commands\DelegateCommand.cs" />

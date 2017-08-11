@@ -9,7 +9,7 @@ namespace ChatServer.Utility.Commands
 {
     internal abstract class CommandBase : ICommand
     {
-        protected static bool ParametersListIsEqualFor(Delegate x, Delegate y)
+        private static bool ParametersListIsEqualFor(Delegate x, Delegate y)
         {
             var executeParameters = x.Method.GetParameters();
             var canExecuteparameters = y.Method.GetParameters();
@@ -19,14 +19,14 @@ namespace ChatServer.Utility.Commands
                                   Any() == false;
         }
 
-        private static void ConstructorCheck(Delegate executeAction, Delegate canExecutePredicate)
+        private static void ConstructorCheck(Delegate executeAction, Delegate canExecutePredicate, Type canExecuteReturnType)
         {
             if (executeAction == null)
                 throw new ArgumentNullException(nameof(executeAction));
 
             Debug.Assert(canExecutePredicate != null, $"{nameof(canExecutePredicate)} != null");
-            Debug.Assert(canExecutePredicate.Method.ReturnType == typeof(bool),
-                $"{nameof(canExecutePredicate)}.Method.ReturnType == typeof(bool)");
+            Debug.Assert(canExecutePredicate.Method.ReturnType == canExecuteReturnType,
+                $"{nameof(canExecutePredicate)}.Method.ReturnType == {canExecuteReturnType.Name}");
             Debug.Assert(
                 executeAction.Method.GetParameters().Length == canExecutePredicate.Method.GetParameters().Length,
                 $"{nameof(executeAction)} Parameters.Length == {nameof(canExecutePredicate)} Parameters.Length");
@@ -45,9 +45,10 @@ namespace ChatServer.Utility.Commands
 
         protected CommandBase(Delegate executeAction,
             Delegate canExecutePredicate,
-            INotifyPropertyChanged notifier = null)
+            INotifyPropertyChanged notifier = null, Type canExecuteReturnType = null)
         {
-            ConstructorCheck(executeAction, canExecutePredicate);
+            // todo choose what to do to delete canExecuteReturnType
+            ConstructorCheck(executeAction, canExecutePredicate, canExecuteReturnType ?? typeof(bool));
 
             ExecuteAction = executeAction;
 
