@@ -17,11 +17,19 @@ namespace ChatServer.Utility.Commands
         ///     Creates <see cref="ICommand" /> whrere <paramref name="command" /> <seealso cref="ICommand.Execute" /> and
         ///     <seealso cref="ICommand.CanExecute" /> methods wrapped in try-catch-finally block.
         /// </summary>
-        /// <param name="command"><see cref="ICommand" /> to wrap in try-catch-finally.</param>
-        /// <param name="executeCatch">Action for catch block of <seealso cref="ICommand.Execute" /> method.</param>
+        /// <param name="command"><see cref="ICommand" /> to wrap in try-catch-finally.
+        ///     <para />
+        ///     Can't be <c>null</c>.
+        /// </param>
+        /// <param name="executeCatch">Action for catch block of <seealso cref="ICommand.Execute" /> method.
+        ///     <para />
+        ///     Can't be <c>null</c>.
+        /// </param>
         /// <param name="canExecuteCatch">
         ///     Function for catch block of <seealso cref="ICommand.CanExecute" /> method. Returns
         ///     <see cref="bool" />.
+        ///     <para />
+        ///     Can't be <c>null</c>.
         /// </param>
         /// <param name="executeFinally">
         ///     Action for finally block of <seealso cref="ICommand.Execute" /> method. Argument types
@@ -31,6 +39,7 @@ namespace ChatServer.Utility.Commands
         ///     >Action for finally block of <seealso cref="ICommand.CanExecute" /> method. Argument
         ///     types must be the same as in original command.
         /// </param>
+        /// <exception cref="ArgumentNullException" />
         public static ICommand CreateCommand<T1, T2>(ICommand command,
             Action<Exception> executeCatch,
             Func<Exception, bool> canExecuteCatch,
