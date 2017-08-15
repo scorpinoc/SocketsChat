@@ -83,18 +83,18 @@ namespace ChatServer.Utility.Commands
         ///     <c>(arg1, arg2) => true</c>
         /// </param>
         /// <param name="notifier">Notifier to subscribe for <see cref="ICommand.CanExecuteChanged" /> event invoke.</param>
-        /// <param name="canExecuteNullParameterInvoke">
+        /// <param name="nullParameterInvoke">
         ///     If <see cref="ICommand.CanExecute" /> parameter is <c>null</c> method reacts considered to
-        ///     <paramref name="canExecuteNullParameterInvoke" /> value
+        ///     <paramref name="nullParameterInvoke" /> value
         /// </param>
         /// <exception cref="ArgumentNullException" />
         public static ICommand CreateCommand<T1, T2>(Action<T1, T2> execute,
             Func<T1, T2, bool> canExecute = null,
             INotifyPropertyChanged notifier = null,
-            CanExecuteNullParameterInvoke canExecuteNullParameterInvoke = CanExecuteNullParameterInvoke.ReturnTrue)
+            NullParameterInvoke nullParameterInvoke = NullParameterInvoke.ReturnTrue)
             =>
                 new MultiParametersCommand(execute, canExecute ?? ((arg1, arg2) => true), notifier,
-                    canExecuteNullParameterInvoke);
+                    nullParameterInvoke);
 
         /// <summary>
         ///     Creates <see cref="ICommand" /> wich delegates their methods to parameters.
@@ -114,18 +114,18 @@ namespace ChatServer.Utility.Commands
         ///     <c>(arg1, arg2, arg3) => true</c>
         /// </param>
         /// <param name="notifier">Notifier to subscribe for <see cref="ICommand.CanExecuteChanged" /> event invoke.</param>
-        /// <param name="canExecuteNullParameterInvoke">
+        /// <param name="nullParameterInvoke">
         ///     If <see cref="ICommand.CanExecute" /> parameter is <c>null</c> method reacts considered to
-        ///     <paramref name="canExecuteNullParameterInvoke" /> value
+        ///     <paramref name="nullParameterInvoke" /> value
         /// </param>
         /// <exception cref="ArgumentNullException" />
         public static ICommand CreateCommand<T1, T2, T3>(Action<T1, T2, T3> execute,
             Func<T1, T2, T3, bool> canExecute = null,
             INotifyPropertyChanged notifier = null,
-            CanExecuteNullParameterInvoke canExecuteNullParameterInvoke = CanExecuteNullParameterInvoke.ReturnTrue)
+            NullParameterInvoke nullParameterInvoke = NullParameterInvoke.ReturnTrue)
             =>
                 new MultiParametersCommand(execute, canExecute ?? ((arg1, arg2, arg3) => true), notifier,
-                    canExecuteNullParameterInvoke);
+                    nullParameterInvoke);
 
         /// <summary>
         ///     Creates <see cref="ICommand" /> wich delegates their methods to parameters.
@@ -147,17 +147,17 @@ namespace ChatServer.Utility.Commands
         ///     <c>(arg1, arg2, arg3, arg4)) => true</c>
         /// </param>
         /// <param name="notifier">Notifier to subscribe for <see cref="ICommand.CanExecuteChanged" /> event invoke.</param>
-        /// <param name="canExecuteNullParameterInvoke">
+        /// <param name="nullParameterInvoke">
         ///     If <see cref="ICommand.CanExecute" /> parameter is <c>null</c> method reacts considered to
-        ///     <paramref name="canExecuteNullParameterInvoke" /> value
+        ///     <paramref name="nullParameterInvoke" /> value
         /// </param>
         /// <exception cref="ArgumentNullException" />
         public static ICommand CreateCommand<T1, T2, T3, T4>(Action<T1, T2, T3, T4> execute,
             Func<T1, T2, T3, T4, bool> canExecute = null,
             INotifyPropertyChanged notifier = null,
-            CanExecuteNullParameterInvoke canExecuteNullParameterInvoke = CanExecuteNullParameterInvoke.ReturnTrue)
+            NullParameterInvoke nullParameterInvoke = NullParameterInvoke.ReturnTrue)
             => new MultiParametersCommand(execute, canExecute ?? ((arg1, arg2, arg3, arg4) => true), notifier,
-                    canExecuteNullParameterInvoke);
+                    nullParameterInvoke);
 
         #endregion
 
@@ -207,23 +207,23 @@ namespace ChatServer.Utility.Commands
         {
             #region Properties
 
-            private CanExecuteNullParameterInvoke CanExecuteNullParameterInvoke { get; }
+            private NullParameterInvoke NullParameterInvoke { get; }
 
             #endregion
 
             public MultiParametersCommand(Delegate execute,
                 Delegate canExecute,
                 INotifyPropertyChanged notifier = null,
-                CanExecuteNullParameterInvoke canExecuteNullParameterInvoke = CanExecuteNullParameterInvoke.ReturnTrue)
+                NullParameterInvoke nullParameterInvoke = NullParameterInvoke.ReturnTrue)
                 : base(execute, canExecute, notifier)
             {
-                CanExecuteNullParameterInvoke = canExecuteNullParameterInvoke;
+                NullParameterInvoke = nullParameterInvoke;
             }
 
             #region Methods
 
             protected override bool CanExecuteImplementation(object parameter) => parameter == null
-                ? CanExecuteNullParameterInvoke.Return(nameof(parameter))
+                ? NullParameterInvoke.Return(nameof(parameter))
                 : (bool)CanExecutePredicate.DynamicInvoke((object[])parameter);
 
             protected override void ExecuteImplementation(object parameter)
