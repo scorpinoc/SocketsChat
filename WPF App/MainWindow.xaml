@@ -12,7 +12,7 @@
         ResizeMode="CanResize"
         MinHeight="350" MinWidth="525">
     <Window.Resources>
-        <wpfApp:MultiBingingToParamsConverter x:Key="ParamsConverter"/>
+        <wpfApp:MultiBingingToParamsConverter x:Key="ParamsConverter" />
     </Window.Resources>
     <DockPanel>
         <WrapPanel DockPanel.Dock="Top">
@@ -24,24 +24,99 @@
             </StackPanel>
             <Button Command="{Binding ElementName=Window, Path=ConnectCommand}" Content="New connection" />
         </WrapPanel>
-        <TabControl ItemsSource="{Binding ElementName=Window, Path=Clients}"
-                    DisplayMemberPath="Nickname">
+        <TabControl ItemsSource="{Binding ElementName=Window, Path=Clients}">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border Name="Border" Margin="1,0" BorderBrush="LimeGreen" BorderThickness="1"
+                                        CornerRadius="10,10,5,5">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="LightBlue" Offset="0" />
+                                            <GradientStop x:Name="GradientStopStart" Color="LightBlue" Offset="0.4" />
+                                            <GradientStop x:Name="GradientStopEnd" Color="LightBlue" Offset="0.65" />
+                                            <GradientStop Color="LightBlue" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <ContentPresenter Content="{Binding Path=Nickname}"
+                                                      d:DataContext="{d:DesignInstance models:Client}"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                      ContentSource="Header" Margin="10,5" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Border" Property="Background" Value="CadetBlue" />
+                                        <Setter TargetName="Border" Property="BorderBrush" Value="Green" />
+                                        <Setter TargetName="Border" Property="BorderThickness" Value="1.5,1.5,1.5,0" />
+                                        <Setter TargetName="Border" Property="CornerRadius" Value="10,10,0,0" />
+                                    </Trigger>
+                                    <EventTrigger RoutedEvent="MouseEnter">
+                                        <EventTrigger.Actions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetName="GradientStopStart"
+                                                                    Storyboard.TargetProperty="Color" To="#4EA8FF"
+                                                                    Duration="0:0:0.500" />
+                                                    <ColorAnimation Storyboard.TargetName="GradientStopEnd"
+                                                                    Storyboard.TargetProperty="Color" To="#1EC6FF"
+                                                                    Duration="0:0:0.500" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger.Actions>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="MouseLeave">
+                                        <EventTrigger.Actions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetName="GradientStopStart"
+                                                                    Storyboard.TargetProperty="Color" To="LightBlue"
+                                                                    Duration="0:0:0.300" />
+                                                    <ColorAnimation Storyboard.TargetName="GradientStopEnd"
+                                                                    Storyboard.TargetProperty="Color" To="LightBlue"
+                                                                    Duration="0:0:0.300" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger.Actions>
+                                    </EventTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
             <TabControl.ContentTemplate>
                 <DataTemplate DataType="models:Client">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <ScrollViewer MaxHeight="300" SizeChanged="ScrollViewer_OnSizeChanged" >
+                        <ScrollViewer MaxHeight="300" SizeChanged="ScrollViewer_OnSizeChanged">
                             <StackPanel>
+                                <StackPanel.Resources>
+                                    <Style TargetType="TextBox">
+                                        <Style.Triggers>
+                                            <EventTrigger RoutedEvent="TextBox.MouseEnter">
+                                                <EventTrigger.Actions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ThicknessAnimation
+                                                                Storyboard.TargetProperty="BorderThickness" From="0"
+                                                                To="0.5" Duration="0:0:0.600" AutoReverse="True" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </EventTrigger.Actions>
+                                            </EventTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Resources>
                                 <ItemsControl ItemsSource="{Binding Path=Messages}"
                                               BorderThickness="2" BorderBrush="LightGreen">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Green"
-                                                     MouseEnter="IncreaseBorderOnMouseEnter"
-                                                     MouseLeave="DecreaseBorderOnMouseLeave">
+                                            <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Green">
                                                 <TextBox.Text>
                                                     <MultiBinding StringFormat="{}({0:HH:mm:ss}) from {1}: {2}">
                                                         <Binding Path="RecieveTime" Mode="OneWay" />
@@ -57,9 +132,7 @@
                                               BorderThickness="2" BorderBrush="LightCoral">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Coral"
-                                                     MouseEnter="IncreaseBorderOnMouseEnter"
-                                                     MouseLeave="DecreaseBorderOnMouseLeave">
+                                            <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Coral">
                                                 <TextBox.Text>
                                                     <MultiBinding StringFormat="{}(sending...) from {0}: {1}">
                                                         <Binding Path="NickName" Mode="OneWay" />
@@ -77,12 +150,12 @@
                                 <ColumnDefinition />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox AcceptsReturn="True" AcceptsTab="True"/>
+                            <TextBox AcceptsReturn="True" AcceptsTab="True" />
                             <Button Command="{Binding ElementName=Window, Path=SendCommand}"
                                     Grid.Column="1" Width="55" Content="Send">
                                 <Button.CommandParameter>
                                     <MultiBinding Converter="{StaticResource ParamsConverter}">
-                                        <Binding/>
+                                        <Binding />
                                         <Binding Path="Children[0]"
                                                  RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Grid}}" />
                                     </MultiBinding>
